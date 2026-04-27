@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MD MMJ Allotment Tracker v1.15</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #1a9e6e; --green-light: #e0f5ec; --green-mid: #0d6e4c; --green-dim: rgba(26,158,110,0.12);
+      --amber: #c07a10; --amber-light: #fdf0d8; --amber-mid: #8a5600;
+      --red: #d94040; --red-dark: #9a2828; --red-light: #fceaea; --red-dim: rgba(217,64,64,0.12);
+      --blue: #1a5fa5; --blue-light: #e6f0fb; --blue-mid: #0e3f72; --blue-dim: rgba(26,95,165,0.12);
+      --purple: #6b3fa0; --purple-light: #f0eaf8;
+      --bg: #f5f4f0; --surface: #ffffff; --surface2: #efede7; --surface3: #e8e5de;
+      --border: rgba(0,0,0,0.08); --border-med: rgba(0,0,0,0.13); --border-strong: rgba(0,0,0,0.2);
+      --text: #1e1e1c; --text-muted: #7a7870; --text-faint: #b0ada6;
+      --radius: 14px; --radius-sm: 9px; --radius-xs: 6px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #181816; --surface: #222220; --surface2: #2a2a28; --surface3: #323230;
+        --border: rgba(255,255,255,0.07); --border-med: rgba(255,255,255,0.12); --border-strong: rgba(255,255,255,0.2);
+        --text: #f0ede6; --text-muted: #8a877e; --text-faint: #5a5854;
+        --green: #2ab87e; --green-light: #0a2d20; --green-mid: #5dd4a8; --green-dim: rgba(42,184,126,0.12);
+        --red: #e86060; --red-light: #3a1212; --red-dark: #f5b0b0; --red-dim: rgba(232,96,96,0.12);
+        --amber: #e09030; --amber-light: #3a2000; --amber-mid: #f0b860;
+        --blue: #4a8fd4; --blue-light: #0a1e36; --blue-mid: #80b4e8; --blue-dim: rgba(74,143,212,0.12);
+        --purple: #9a6ed0; --purple-light: #1e1030;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.3); --shadow: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+      }
+    }
+
+    html { font-size: 16px; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 6rem; }
+
+    /* ── Top bar ── */
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border-med); padding: 0 1.5rem; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+    .topbar-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 1rem; }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; }
+    .topbar-logo { width: 28px; height: 28px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .topbar-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+    .topbar-ver { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text-faint); margin-left: 6px; }
+    .topbar-actions { display: flex; gap: 6px; align-items: center; }
+
+    .page { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* ── Buttons ── */
+    .btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 7px 13px; border-radius: var(--radius-sm); border: 1px solid var(--border-med); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .btn:hover { background: var(--surface2); color: var(--text); }
+    .btn.btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
+    .btn.btn-primary:hover { background: var(--green-mid); border-color: var(--green-mid); }
+    .btn.btn-danger:hover { background: var(--red-light); color: var(--red-dark); border-color: var(--red); }
+    .btn-icon { padding: 7px 9px; }
+
+    .btn-group { position: relative; display: inline-flex; }
+    .btn-group .dd { display: none; position: absolute; top: calc(100% + 5px); right: 0; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); min-width: 148px; z-index: 200; overflow: hidden; box-shadow: var(--shadow-lg); }
+    .btn-group .dd.open { display: block; }
+    .btn-group .dd button { font-family: 'DM Sans', sans-serif; font-size: 13px; width: 100%; text-align: left; padding: 9px 14px; border: none; background: transparent; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 9px; transition: background 0.1s; }
+    .btn-group .dd button:hover { background: var(--surface2); }
+    .btn-group .dd button + button { border-top: 1px solid var(--border); }
+    .dd-icon { font-size: 13px; opacity: 0.55; width: 16px; text-align: center; }
+
+    /* ── Page header ── */
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .page-sub { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .page-sub .dot { color: var(--text-faint); }
+    .save-indicator { font-size: 11px; color: var(--text-faint); font-family: 'DM Mono', monospace; margin-top: 5px; min-height: 14px; }
+
+    /* ── Tabs ── */
+    .tab-nav { display: flex; gap: 2px; margin-bottom: 2rem; background: var(--surface2); border-radius: 11px; padding: 3px; border: 1px solid var(--border); width: fit-content; }
+    .tab-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 16px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Section labels ── */
+    .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 10px; }
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+    /* ── Info banner ── */
+    .info-banner { background: var(--blue-dim); border: 1px solid var(--blue); border-radius: var(--radius); padding: 0.9rem 1.1rem; margin-bottom: 1.5rem; font-size: 13px; color: var(--blue-mid); line-height: 1.6; }
+    .info-banner strong { font-weight: 600; }
+    @media (prefers-color-scheme: dark) { .info-banner { color: var(--blue); } }
+
+    /* ── Cards / grids ── */
+    .card { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); padding: 1.1rem 1.25rem; box-shadow: var(--shadow-sm); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 560px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+
+    /* ── Certified amounts + snapshot ── */
+    .cert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    @media (max-width: 560px) { .cert-grid { grid-template-columns: 1fr; } }
+    .cert-card { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); padding: 1rem 1.25rem; box-shadow: var(--shadow-sm); }
+    .cert-card label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); display: block; margin-bottom: 8px; }
+    .cert-card input[type=number] { width: 100%; font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 500; background: transparent; border: none; border-bottom: 2px solid var(--border-strong); outline: none; color: var(--text); padding: 3px 0 6px; transition: border-color 0.15s; }
+    .cert-card input[type=number]:focus { border-bottom-color: var(--green); }
+    .cert-card .unit { font-size: 11px; color: var(--text-faint); margin-top: 6px; }
+    .snapshot-row { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; flex-wrap: wrap; }
+    .snapshot-row label { font-size: 12px; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+    .snapshot-row input[type=date] { font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius-sm); padding: 6px 10px; color: var(--text); outline: none; color-scheme: light dark; transition: border-color 0.15s; }
+    .snapshot-row input[type=date]:focus { border-color: var(--green); }
+
+    /* ── Purchase log ── */
+    .entries-wrapper { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); overflow-x: auto; overflow-y: hidden; margin-bottom: 10px; box-shadow: var(--shadow-sm); -webkit-overflow-scrolling: touch; }
+    .entries-scroll-inner { min-width: 630px; }
+    .entry-header { display: grid; grid-template-columns: 110px 1fr 95px 26px 95px 48px 80px 42px 34px; background: var(--surface2); border-bottom: 1px solid var(--border-med); }
+    .entry-header span { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-muted); padding: 8px 10px; }
+    .entry-row { display: grid; grid-template-columns: 110px 1fr 95px 26px 95px 48px 80px 42px 34px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.1s; }
+    .entry-row:last-child { border-bottom: none; }
+    .entry-row:hover { background: var(--surface2); }
+    .entry-row.is-rec { background: var(--purple-light); }
+    .entry-row.is-rec:hover { background: var(--purple-light); filter: brightness(0.97); }
+    .entry-row input[type=date], .entry-row input[type=text] { font-family: 'DM Sans', sans-serif; width: 100%; border: none; border-right: 1px solid var(--border); background: transparent; font-size: 13px; color: var(--text); padding: 9px 10px; outline: none; }
+    .entry-row input[type=date] { color-scheme: light dark; }
+    .entry-row input[type=text]::placeholder { color: var(--text-faint); }
+    .entry-row input[type=number].qty-input { font-family: 'DM Mono', monospace; width: 100%; border: none; border-right: 1px solid var(--border); background: transparent; font-size: 13px; color: var(--text); padding: 9px 10px; outline: none; text-align: right; }
+    .entry-row input[type=number].price-input { font-family: 'DM Mono', monospace; width: 100%; border: none; border-right: 1px solid var(--border); background: transparent; font-size: 13px; color: var(--text); padding: 9px 4px 9px 10px; outline: none; text-align: right; }
+    .entry-row input[type=number].price-input::placeholder { color: var(--text-faint); }
+    .entry-row input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .entry-row input:focus { background: var(--green-dim); }
+    /* Scroll hint shown on mobile when table overflows */
+    .entries-scroll-hint { display: none; font-size: 11px; color: var(--text-faint); text-align: center; padding: 4px 0 8px; }
+    @media (max-width: 660px) { .entries-scroll-hint { display: block; } }
+    /* M/R toggle */
+    .mr-toggle { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; width: 100%; height: 100%; border: none; border-right: 1px solid var(--border); background: transparent; color: var(--green); cursor: pointer; padding: 0 4px; transition: background 0.12s, color 0.12s; display: flex; align-items: center; justify-content: center; }
+    .mr-toggle:hover { background: var(--surface3); }
+    .mr-toggle.is-rec { color: var(--purple); background: var(--purple-light); }
+    .mr-toggle .mt-m { display: block; }
+    .mr-toggle .mt-r { display: none; }
+    .mr-toggle.is-rec .mt-m { display: none; }
+    .mr-toggle.is-rec .mt-r { display: block; }
+    /* Unit toggle button */
+    .unit-toggle { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; width: 100%; height: 100%; border: none; border-right: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; padding: 0 4px; transition: background 0.12s, color 0.12s; display: flex; align-items: center; justify-content: center; }
+    .unit-toggle:hover { background: var(--surface3); color: var(--text); }
+    .unit-toggle.is-mg { color: var(--blue); background: var(--blue-dim); }
+    .unit-toggle .ut-g  { display: block; }
+    .unit-toggle .ut-mg { display: none; }
+    .unit-toggle.is-mg .ut-g  { display: none; }
+    .unit-toggle.is-mg .ut-mg { display: block; }
+    .del-btn { background: none; border: none; cursor: pointer; color: var(--text-faint); font-size: 13px; padding: 0 9px; display: flex; align-items: center; justify-content: center; height: 100%; transition: color 0.15s; }
+    .del-btn:hover { color: var(--red); }
+    .add-btn { font-family: 'DM Sans', sans-serif; background: var(--surface); border: 1px dashed var(--border-strong); border-radius: var(--radius); color: var(--text-muted); font-size: 13px; font-weight: 500; padding: 9px 14px; cursor: pointer; width: 100%; margin-bottom: 2rem; transition: background 0.15s, color 0.15s; }
+    .add-btn:hover { background: var(--surface2); color: var(--text); }
+
+    /* ── Summary cards ── */
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+    @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
+    .sum-card { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); padding: 0.9rem 1.1rem; box-shadow: var(--shadow-sm); }
+    .sum-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-muted); margin-bottom: 4px; }
+    .sum-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; }
+    .sum-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; line-height: 1.4; }
+
+    /* ── Progress / pool bar ── */
+    .pool-section { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+    .pool-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+    .pool-title { font-size: 13px; font-weight: 500; }
+    .pool-pct { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+    .pool-bar-track { background: var(--surface2); border-radius: 99px; height: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .pool-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease, background 0.4s ease; }
+    .pool-sub { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-faint); margin-top: 7px; flex-wrap: wrap; gap: 4px; }
+    .pool-sub span { font-family: 'DM Mono', monospace; }
+
+    /* ── Remaining cards ── */
+    .rem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 2rem; }
+    @media (max-width: 480px) { .rem-grid { grid-template-columns: 1fr; } }
+    .rem-card { border-radius: var(--radius); padding: 1.1rem 1.25rem; border: 1px solid transparent; transition: background 0.3s, border-color 0.3s; }
+    .rem-card .r-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 4px; }
+    .rem-card .r-val { font-family: 'DM Mono', monospace; font-size: 26px; font-weight: 500; }
+    .rem-card .r-sub { font-size: 12px; margin-top: 3px; }
+    .rem-card .r-pct { font-size: 11px; margin-top: 2px; font-family: 'DM Mono', monospace; opacity: 0.7; }
+
+    /* ── Weekly history ── */
+    .week-group { margin-bottom: 1.25rem; }
+    .week-group-header { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--border-med); margin-bottom: 2px; }
+    .week-group-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .week-group-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
+    .week-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .week-row:last-child { border-bottom: none; }
+    .week-row-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); min-width: 68px; flex-shrink: 0; }
+    .week-row-desc { font-size: 13px; color: var(--text); flex: 1; }
+    .week-row-tags { display: flex; gap: 5px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+    .tag { font-size: 11px; font-family: 'DM Mono', monospace; padding: 2px 8px; border-radius: 99px; }
+    .tag.flower { background: var(--green-light); color: var(--green-mid); }
+    .tag.conc   { background: var(--blue-light);  color: var(--blue-mid);  }
+    .tag.pct    { background: var(--surface2);     color: var(--text-muted); }
+    .tag.expired { background: var(--surface3); color: var(--text-faint); }
+    .expired-row { opacity: 0.4; }
+
+    /* ── Recovery timeline ── */
+    .recovery-empty { font-size: 13px; color: var(--text-muted); padding: 0.5rem 0 1rem; }
+    .recovery-item { display: flex; align-items: stretch; gap: 14px; }
+    .recovery-item:last-child .rc-line { visibility: hidden; }
+    .rc-dot-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 14px; padding-top: 5px; }
+    .rc-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .rc-dot.future { background: transparent; border: 2px solid var(--green); }
+    .rc-line { width: 2px; flex: 1; background: var(--border-med); margin: 4px 0; min-height: 20px; }
+    .rc-content { padding-bottom: 1.4rem; flex: 1; min-width: 0; }
+    .rc-date-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+    .rc-date { font-size: 14px; font-weight: 600; }
+    .rc-days { font-size: 12px; color: var(--text-muted); }
+    .rc-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .rc-badge { font-size: 11px; font-family: 'DM Mono', monospace; padding: 3px 10px; border-radius: 99px; }
+    .rc-badge.flower { background: var(--green-light); color: var(--green-mid); }
+    .rc-badge.conc   { background: var(--blue-light);  color: var(--blue-mid);  }
+    .rc-badge.pct    { background: var(--surface2);     color: var(--text-muted); }
+    .rc-items { margin-top: 6px; font-size: 12px; color: var(--text-faint); line-height: 1.7; }
+    .rc-avail { margin-top: 7px; font-size: 12px; color: var(--text-muted); }
+    .rc-avail span { font-family: 'DM Mono', monospace; font-weight: 500; }
+
+    /* ── Journal / Product database ── */
+    .jf-card { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+    .jf-title { font-size: 14px; font-weight: 600; margin-bottom: 1rem; }
+    .jf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .jf-grid.full { grid-template-columns: 1fr; }
+    .jf-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 560px) { .jf-grid, .jf-grid.three { grid-template-columns: 1fr; } }
+    .jf-field { display: flex; flex-direction: column; gap: 5px; }
+    .jf-field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+    .jf-field input[type=text], .jf-field input[type=date], .jf-field select, .jf-field textarea {
+      font-family: 'DM Sans', sans-serif; font-size: 13px; width: 100%;
+      background: var(--surface2); border: 1px solid var(--border-med); border-radius: var(--radius-sm);
+      color: var(--text); padding: 8px 10px; outline: none; transition: border-color 0.15s;
+    }
+    .jf-field input[type=date] { color-scheme: light dark; }
+    .jf-field input:focus, .jf-field select:focus, .jf-field textarea:focus { border-color: var(--green); background: var(--surface); }
+    .jf-field textarea { resize: vertical; min-height: 72px; line-height: 1.55; }
+    .jf-field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-color: var(--surface2); padding-right: 28px; }
+
+    /* ── Ratings ── */
+    .ratings-section { margin-bottom: 12px; }
+    .ratings-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
+    .ratings-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    @media (max-width: 560px) { .ratings-grid { grid-template-columns: 1fr 1fr; } }
+    .rating-item { display: flex; flex-direction: column; gap: 5px; }
+    .rating-item-label { font-size: 11px; color: var(--text-muted); text-align: center; }
+    .stars { display: flex; gap: 2px; justify-content: center; }
+    .star { font-size: 18px; cursor: pointer; color: var(--text-faint); transition: color 0.08s, transform 0.08s; user-select: none; line-height: 1; }
+    .star:hover, .star.lit { color: var(--amber); }
+    .star:hover { transform: scale(1.2); }
+
+    .jf-fill-row { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .jf-save-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 20px; border-radius: var(--radius-sm); border: 1px solid var(--green); background: var(--green); color: #fff; cursor: pointer; transition: background 0.15s; }
+    .jf-save-btn:hover { background: var(--green-mid); }
+    .jf-cancel-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-med); background: transparent; color: var(--text-muted); cursor: pointer; transition: background 0.15s; }
+    .jf-cancel-btn:hover { background: var(--surface2); }
+
+    /* ── Product cards ── */
+    .product-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+    .product-controls label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+    .product-controls select, .product-controls input[type=text] { font-family: 'DM Sans', sans-serif; font-size: 12px; background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius-sm); color: var(--text); padding: 6px 10px; outline: none; }
+    .product-controls select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 26px; }
+    .product-controls input[type=text] { flex: 1; min-width: 140px; }
+    .product-controls input::placeholder { color: var(--text-faint); }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .product-card { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); padding: 1.1rem 1.2rem; box-shadow: var(--shadow-sm); transition: box-shadow 0.15s, transform 0.15s; }
+    .product-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+    .pc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .pc-name { font-size: 14px; font-weight: 600; line-height: 1.3; }
+    .pc-type { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-top: 3px; }
+    .pc-type.Flower   { background: var(--green-light); color: var(--green-mid); }
+    .pc-type.Pre-roll { background: var(--green-light); color: var(--green-mid); }
+    .pc-type.Vape     { background: var(--blue-light);  color: var(--blue-mid);  }
+    .pc-type.RSO      { background: var(--purple-light);color: var(--purple);    }
+    .pc-type.Concentrate { background: var(--blue-light); color: var(--blue-mid); }
+    .pc-type.Edible   { background: var(--amber-light); color: var(--amber-mid); }
+    .pc-type.Tincture { background: var(--amber-light); color: var(--amber-mid); }
+    .pc-type.Topical  { background: var(--surface2);    color: var(--text-muted);}
+    .pc-type.Other    { background: var(--surface2);    color: var(--text-muted);}
+    .pc-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .pc-action { background: none; border: none; cursor: pointer; font-size: 13px; color: var(--text-faint); padding: 3px 6px; border-radius: var(--radius-xs); transition: color 0.12s, background 0.12s; }
+    .pc-action:hover { color: var(--text); background: var(--surface2); }
+    .pc-action.del:hover { color: var(--red); }
+    .pc-meta { font-size: 11px; color: var(--text-faint); margin-bottom: 10px; }
+    .pc-ratings { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .pc-rating { display: flex; flex-direction: column; gap: 2px; }
+    .pc-rating-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+    .pc-stars { display: flex; gap: 1px; font-size: 12px; }
+    .pc-star-lit { color: var(--amber); }
+    .pc-star-empty { color: var(--text-faint); }
+    .pc-avg { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 99px; background: var(--amber-light); color: var(--amber-mid); }
+    .pc-notes { font-size: 12px; color: var(--text-muted); line-height: 1.55; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
+    .pc-dispensary { font-size: 11px; color: var(--text-faint); }
+    .journal-empty { font-size: 13px; color: var(--text-muted); padding: 2rem 0; text-align: center; }
+
+    /* ── Toast ── */
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 500; padding: 9px 20px; border-radius: var(--radius-sm); opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap; z-index: 9999; box-shadow: var(--shadow-lg); }
+    .toast.show { opacity: 1; }
+
+    /* ── Modal ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); align-items: center; justify-content: center; z-index: 500; padding: 1rem; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 1.75rem; width: 100%; max-width: 360px; box-shadow: var(--shadow-lg); }
+    .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .modal p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; }
+    .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-btns button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border-med); background: var(--surface); color: var(--text); transition: background 0.15s; }
+    .modal-btns button:hover { background: var(--surface2); }
+    .modal-btns button.confirm { background: var(--red); color: #fff; border-color: var(--red); }
+    .modal-btns button.confirm:hover { background: var(--red-dark); }
+
+    /* ── Footer ── */
+    .footer-note { font-size: 12px; color: var(--text-faint); border-top: 1px solid var(--border); padding-top: 1.25rem; line-height: 1.8; }
+    .footer-note a { color: var(--green); text-decoration: none; }
+    .footer-note a:hover { text-decoration: underline; }
+
+    #import-file-input { display: none; }
+
+    /* ── Calendar view ── */
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; gap: 10px; }
+    .cal-nav-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    .cal-nav-btns { display: flex; gap: 6px; }
+    .cal-nav-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-med); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: background 0.12s, color 0.12s; }
+    .cal-nav-btn:hover { background: var(--surface2); color: var(--text); }
+    .cal-nav-btn.today-btn { border-color: var(--green); color: var(--green); }
+    .cal-nav-btn.today-btn:hover { background: var(--green-dim); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 1.25rem; }
+    .cal-dow { text-align: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); padding: 4px 0 8px; }
+    .cal-cell { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); min-height: 64px; padding: 6px 7px; cursor: default; transition: border-color 0.12s, background 0.12s; }
+    .cal-cell.other-month { background: var(--surface2); opacity: 0.4; }
+    .cal-cell.has-purchase { border-color: var(--green); cursor: pointer; }
+    .cal-cell.has-purchase:hover { background: var(--green-dim); }
+    .cal-cell.is-today { border-color: var(--green) !important; border-width: 2px; background: var(--green-dim); }
+    .cal-cell.is-today .cal-day-num { color: var(--green); font-weight: 700; }
+    .cal-cell.has-expiry { border-color: var(--amber); }
+    .cal-cell.has-expiry.has-purchase { border-color: var(--green); }
+    .cal-day-num { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 3px; line-height: 1; }
+    .cal-dots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+    .cal-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .cal-dot.flower { background: var(--green); }
+    .cal-dot.thc    { background: var(--blue); }
+    .cal-dot.expiry { background: var(--amber); }
+    .cal-dot.rec    { background: var(--purple); }
+    .cal-pills { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; }
+    .cal-pill { font-size: 9px; font-family: 'DM Mono', monospace; padding: 1px 5px; border-radius: 99px; background: var(--green-light); color: var(--green-mid); display: inline-block; line-height: 1.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .cal-pill.exp { background: var(--amber-light); color: var(--amber-mid); }
+    .cal-pill.rec { background: var(--purple-light); color: var(--purple); }
+    /* Recovery amount shown at top of expiry cells */
+    .cal-recovery { font-size: 9px; font-family: 'DM Mono', monospace; font-weight: 700; color: var(--amber-mid); background: var(--amber-light); border-radius: 4px; padding: 2px 5px; margin-bottom: 3px; display: inline-block; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    @media (prefers-color-scheme: dark) { .cal-recovery { color: var(--amber); } }
+    .cal-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+    .cal-legend-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .cal-detail { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); display: none; }
+    .cal-detail.open { display: block; }
+    .cal-detail-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); }
+    .cal-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .cal-detail-row:last-child { border-bottom: none; }
+    .cal-detail-amt { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); text-align: right; }
+    @media (max-width: 500px) { .cal-cell { min-height: 46px; padding: 4px 4px; } .cal-pills { display: none; } .cal-dot { width: 5px; height: 5px; } }
+
+    /* ── THC % calculator panel ── */
+    .entry-group { border-bottom: 1px solid var(--border); }
+    .entry-group:last-child { border-bottom: none; }
+    .entry-group .entry-row { border-bottom: none; }
+    .thc-calc { display: none; background: var(--blue-dim); border-top: 1px solid var(--blue); padding: 10px 12px; }
+    .thc-calc.open { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 8px; align-items: end; }
+    .thc-calc-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--blue-mid); margin-bottom: 4px; }
+    @media (prefers-color-scheme: dark) { .thc-calc-label { color: var(--blue); } }
+    .thc-calc-field { display: flex; flex-direction: column; }
+    .thc-calc-field input { font-family: 'DM Mono', monospace; font-size: 13px; background: var(--surface); border: 1px solid var(--blue); border-radius: var(--radius-sm); color: var(--text); padding: 6px 9px; outline: none; width: 100%; transition: border-color 0.15s; }
+    .thc-calc-field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .thc-calc-field input:focus { border-color: var(--blue-mid); }
+    .thc-calc-result { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--blue-mid); background: var(--blue-light); border: 1px solid var(--blue); border-radius: var(--radius-sm); padding: 6px 10px; white-space: nowrap; }
+    @media (prefers-color-scheme: dark) { .thc-calc-result { color: var(--blue); } }
+    .thc-calc-apply { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; background: var(--blue); color: #fff; border: none; border-radius: var(--radius-sm); padding: 7px 12px; cursor: pointer; white-space: nowrap; transition: background 0.12s; }
+    .thc-calc-apply:hover { background: var(--blue-mid); }
+    .thc-calc-apply:disabled { opacity: 0.4; cursor: default; }
+    @media (max-width: 500px) { .thc-calc.open { grid-template-columns: 1fr 1fr; } }
+
+    /* % button on entry rows */
+    .pct-btn { background: none; border: none; border-right: 1px solid var(--border); cursor: pointer; font-size: 11px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--text-faint); padding: 0 7px; height: 100%; display: flex; align-items: center; justify-content: center; transition: color 0.12s, background 0.12s; }
+    .pct-btn:hover { color: var(--blue); background: var(--blue-dim); }
+    .pct-btn.active { color: var(--blue); background: var(--blue-dim); }
+
+    /* ── Spending tracker ── */
+    .spend-section { background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius); padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+    .spend-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; gap: 10px; flex-wrap: wrap; }
+    .spend-title { font-size: 13px; font-weight: 600; }
+    .spend-period-toggle { display: flex; background: var(--surface2); border-radius: 8px; padding: 2px; border: 1px solid var(--border); gap: 2px; }
+    .spend-period-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 4px 12px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: background 0.12s, color 0.12s; white-space: nowrap; }
+    .spend-period-btn.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+    .spend-totals-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .spend-total-block { display: flex; flex-direction: column; gap: 2px; }
+    .spend-total-block.is-grand { border-left: 1px solid var(--border-med); padding-left: 12px; margin-left: 4px; }
+    .spend-total-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+    .spend-total-val { font-family: 'DM Mono', monospace; font-size: 26px; font-weight: 500; color: var(--text); line-height: 1.1; }
+    .spend-total-block.is-grand .spend-total-val { font-size: 30px; color: var(--text); }
+    .spend-total-divider { font-size: 18px; color: var(--text-faint); font-weight: 300; padding: 0 2px; align-self: flex-end; padding-bottom: 4px; }
+    .spend-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 1rem; }
+    .spend-rows { display: flex; flex-direction: column; gap: 7px; }
+    .spend-row { display: flex; align-items: center; gap: 10px; }
+    .spend-row-label { font-size: 12px; color: var(--text-muted); width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .spend-row-bar-track { flex: 1; background: var(--surface2); border-radius: 99px; height: 6px; overflow: hidden; border: 1px solid var(--border); }
+    .spend-row-bar-fill { height: 100%; border-radius: 99px; background: var(--green); transition: width 0.35s ease; }
+    .spend-row-amt { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); min-width: 58px; text-align: right; flex-shrink: 0; font-weight: 500; }
+    .spend-empty { font-size: 13px; color: var(--text-faint); text-align: center; padding: 0.5rem 0; }
+    .spend-type-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 7px; margin-top: 2px; }
+    .tag.price { background: var(--surface2); color: var(--text-muted); }
+    .tag.rec   { background: var(--purple-light); color: var(--purple); }
+
+    /* ── Expired toggle ── */
+    .expired-toggle-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; background: var(--surface2); border: 1px solid var(--border-med); border-radius: var(--radius-sm); color: var(--text-muted); padding: 7px 14px; cursor: pointer; width: 100%; text-align: center; transition: background 0.15s, color 0.15s; }
+    .expired-toggle-btn:hover { background: var(--surface3); color: var(--text); }
+
+    /* ── Archive tab ── */
+    .archive-header { margin-bottom: 1.25rem; }
+    .archive-filter-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .archive-filter-row label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+    .archive-filter-row select { font-family: 'DM Sans', sans-serif; font-size: 12px; background: var(--surface); border: 1px solid var(--border-med); border-radius: var(--radius-sm); color: var(--text); padding: 6px 24px 6px 10px; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
+    .archive-month-group { margin-bottom: 1.25rem; }
+    .archive-month-header { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border-med); margin-bottom: 2px; cursor: pointer; user-select: none; }
+    .archive-month-header:hover .archive-month-label { color: var(--text); }
+    .archive-month-label { font-size: 13px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+    .archive-month-chevron { font-size: 10px; transition: transform 0.2s; color: var(--text-faint); }
+    .archive-month-chevron.open { transform: rotate(90deg); }
+    .archive-month-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
+    .archive-month-rows { }
+    .archive-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .archive-row:last-child { border-bottom: none; }
+    .archive-row-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); min-width: 68px; flex-shrink: 0; }
+    .archive-row-desc { font-size: 13px; color: var(--text); flex: 1; }
+    .archive-row-tags { display: flex; gap: 5px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+    .archive-empty { font-size: 13px; color: var(--text-muted); padding: 2rem 0; text-align: center; }
+
+    /* ── Mobile improvements ── */
+    @media (max-width: 600px) {
+      /* Page breathing room */
+      .page { padding: 1.25rem 0.85rem; }
+
+      /* Topbar -- hide text labels on Import/Export/Reset, show icons only */
+      .topbar-inner { height: 50px; padding: 0 0.85rem; }
+      .topbar-name { font-size: 13px; }
+      .topbar-ver { display: none; }
+      .btn { font-size: 12px; padding: 6px 10px; }
+
+      /* Tab nav -- allow wrapping */
+      .tab-nav { width: 100%; }
+      .tab-btn { font-size: 12px; padding: 6px 12px; }
+
+      /* Cert cards stack */
+      .cert-grid { grid-template-columns: 1fr; }
+
+      /* Summary cards -- 2 col then last full width */
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+
+      /* Remaining cards stack */
+      .rem-grid { grid-template-columns: 1fr; }
+
+      /* Spending totals -- horizontal label+value rows, left aligned */
+      .spend-totals-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .spend-total-block { flex-direction: row; align-items: baseline; gap: 10px; width: 100%; }
+      .spend-total-block.is-grand { border-left: none; padding-left: 0; border-top: 1px solid var(--border-med); padding-top: 8px; margin-left: 0; margin-top: 4px; }
+      .spend-total-label { min-width: 120px; font-size: 10px; margin-bottom: 0; }
+      .spend-total-val { font-size: 20px; }
+      .spend-total-block.is-grand .spend-total-val { font-size: 22px; }
+      .spend-total-divider { display: none; }
+      .spend-period-toggle { flex-wrap: wrap; }
+      .spend-period-btn { padding: 4px 8px; font-size: 11px; }
+
+      /* Recovery timeline -- tighter */
+      .rc-content { padding-bottom: 1rem; }
+
+      /* Week history tags -- wrap tighter */
+      .week-row { flex-wrap: wrap; gap: 6px; }
+      .week-row-tags { justify-content: flex-start; }
+
+      /* Calendar nav */
+      .cal-nav { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .cal-nav-title { font-size: 14px; }
+      .cal-legend { gap: 8px; }
+      .cal-legend-item { font-size: 10px; }
+
+      /* Journal form */
+      .jf-grid, .jf-grid.three { grid-template-columns: 1fr; }
+      .ratings-grid { grid-template-columns: repeat(3, 1fr); }
+      .product-controls { flex-direction: column; align-items: stretch; }
+      .product-controls input[type=text] { min-width: unset; }
+
+      /* Product cards -- full width */
+      .product-grid { grid-template-columns: 1fr; }
+
+      /* Archive filter row */
+      .archive-filter-row { gap: 6px; }
+
+      /* Snapshot row wrap */
+      .snapshot-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+      /* Pool section */
+      .pool-sub { flex-direction: column; gap: 2px; }
+
+      /* Page header */
+      .page-title { font-size: 20px; }
+      .page-sub { font-size: 12px; }
+
+      /* Info banner font size */
+      .info-banner { font-size: 12px; }
+
+      /* Section label spacing */
+      .section-divider { margin: 1.5rem 0; }
+    }
+
+    @media (max-width: 400px) {
+      .tab-btn { font-size: 11px; padding: 5px 9px; }
+      .spend-totals-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .spend-total-block { flex-direction: row; align-items: baseline; gap: 10px; }
+      .spend-total-block.is-grand { border-left: none; padding-left: 0; border-top: 1px solid var(--border-med); padding-top: 8px; margin-left: 0; width: 100%; }
+      .spend-total-label { min-width: 110px; margin-bottom: 0; }
+      .spend-total-divider { display: none; }
+      .ratings-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <div class="topbar-logo">🌿</div>
+      <div>
+        <span class="topbar-name">MD MMJ Tracker</span>
+        <span class="topbar-ver">v1.15</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="btn-group" id="import-group">
+        <button class="btn" onclick="toggleDD('import-dd')">↑ Import</button>
+        <div class="dd" id="import-dd">
+          <button onclick="triggerImport('json')"><span class="dd-icon">{}</span> Import JSON</button>
+          <button onclick="triggerImport('csv')"><span class="dd-icon">≡</span> Import CSV</button>
+        </div>
+      </div>
+      <div class="btn-group" id="export-group">
+        <button class="btn" onclick="toggleDD('export-dd')">↓ Export</button>
+        <div class="dd" id="export-dd">
+          <button onclick="exportJSON()"><span class="dd-icon">{}</span> Export JSON</button>
+          <button onclick="exportCSV()"><span class="dd-icon">≡</span> Export CSV</button>
+        </div>
+      </div>
+      <button class="btn btn-danger" onclick="openReset()">↺ Reset</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="import-file-input" accept=".json,.csv">
+
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-title">Allotment Tracker</div>
+    <div class="page-sub">
+      <span>Maryland Medical Cannabis</span>
+      <span class="dot">·</span>
+      <span>Rolling 30-day window</span>
+      <span class="dot">·</span>
+      <span>Today: <strong id="today-label"></strong></span>
+    </div>
+    <div class="save-indicator" id="save-indicator"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('allotment')">📊 Allotment</button>
+    <button class="tab-btn" onclick="switchTab('journal')">📓 Product Journal</button>
+    <button class="tab-btn" onclick="switchTab('archive')">🗄 Archive</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       ALLOTMENT TAB
+  ══════════════════════════════════════════ -->
+  <div class="tab-panel active" id="tab-allotment">
+
+    <div class="info-banner">
+      <strong>How to use:</strong> Enter your <strong>certified amounts</strong> from your provider, then enter your <strong>current remaining balances</strong> from your OneStop account. Log new purchases going forward — the tracker handles the math using Maryland's official percentage-pool formula.
+      <br><br>
+      <strong>⚠️ For processed products (RSO, vapes, concentrates):</strong> Use the <strong>Δ9-THC value in mg printed directly on the product label</strong> — not the potency % and not "Total THC." The dispensary transmits the Δ9-THC value to OneStop, which may differ from label % × weight. Set the unit toggle to <strong>mg</strong> and enter the Δ9-THC mg number from the label.
+    </div>
+
+    <!-- Step 1: Certified amounts -->
+    <p class="section-label">Step 1 — Your certified amounts (from your provider)</p>
+    <div class="cert-grid" style="margin-bottom:12px;">
+      <div class="cert-card">
+        <label>Certified dried flower</label>
+        <input type="number" id="cert-flower" value="120" min="0" step="0.01" oninput="save();recalc()">
+        <div class="unit">grams per 30-day period &nbsp;· Standard: 120g</div>
+      </div>
+      <div class="cert-card">
+        <label>Certified THC (processed)</label>
+        <input type="number" id="cert-thc" value="36" min="0" step="0.01" oninput="save();recalc()">
+        <div class="unit">grams per 30-day period &nbsp;· Standard: 36g</div>
+      </div>
+    </div>
+
+    <!-- Step 2: Current remaining from OneStop -->
+    <p class="section-label">Step 2 — Current remaining balances (from OneStop)</p>
+    <div class="cert-grid" style="margin-bottom:12px;">
+      <div class="cert-card">
+        <label>Remaining dried flower</label>
+        <input type="number" id="flower-allot" value="120" min="0" step="0.01" oninput="save();recalc()">
+        <div class="unit">grams currently available</div>
+      </div>
+      <div class="cert-card">
+        <label>Remaining THC</label>
+        <input type="number" id="conc-allot" value="36" min="0" step="0.01" oninput="save();recalc()">
+        <div class="unit">grams currently available</div>
+      </div>
+    </div>
+    <div class="snapshot-row">
+      <label>Balances as of:</label>
+      <input type="date" id="snapshot-date" oninput="save();recalc()">
+      <span style="font-size:12px;color:var(--text-faint)">When you last checked OneStop</span>
+    </div>
+
+    <!-- Step 3: Purchase log -->
+    <p class="section-label">Step 3 — Log purchases since your snapshot date</p>
+    <div class="entries-scroll-hint">← Scroll to see all columns →</div>
+    <div class="entries-wrapper">
+      <div class="entries-scroll-inner">
+      <div class="entry-header">
+        <span>Date</span>
+        <span>Description</span>
+        <span style="text-align:right">Flower (g)</span>
+        <span></span>
+        <span style="text-align:right">Δ9-THC</span>
+        <span style="text-align:center">Unit</span>
+        <span style="text-align:right">Price ($)</span>
+        <span style="text-align:center" title="Medical or Recreational">M/R</span>
+        <span></span>
+      </div>
+      <div id="entries-body"></div>
+      </div><!-- /entries-scroll-inner -->
+    </div>
+    <div id="expired-toggle-row" style="display:none;margin-bottom:6px;">
+      <button class="expired-toggle-btn" id="expired-toggle-btn" onclick="toggleExpired()">
+        <span id="expired-toggle-label"></span>
+      </button>
+    </div>
+    <button class="add-btn" onclick="addRow()">+ Add purchase</button>
+
+    <!-- Pool usage -->
+    <div class="pool-section">
+      <div class="pool-header">
+        <span class="pool-title">Shared allotment pool used</span>
+        <span class="pool-pct" id="pool-pct-label">0.0%</span>
+      </div>
+      <div class="pool-bar-track"><div class="pool-bar-fill" id="pool-bar" style="width:0%"></div></div>
+      <div class="pool-sub">
+        <span id="pool-sub-left">0% flower + 0% THC</span>
+        <span id="pool-sub-right">0% remaining</span>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <p class="section-label">Purchased since snapshot</p>
+    <div class="summary-grid">
+      <div class="sum-card">
+        <div class="sum-label">Flower bought</div>
+        <div class="sum-val" id="tot-flower">0.00 g</div>
+        <div class="sum-sub" id="tot-flower-pct"></div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-label">THC bought</div>
+        <div class="sum-val" id="tot-thc">0.00 g</div>
+        <div class="sum-sub" id="tot-thc-pct"></div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-label">Pool % used</div>
+        <div class="sum-val" id="tot-pool-pct">0.0%</div>
+        <div class="sum-sub">of combined limit</div>
+      </div>
+    </div>
+
+    <!-- Spending tracker -->
+    <div class="spend-section">
+      <div class="spend-header">
+        <span class="spend-title">💰 Spending</span>
+        <div class="spend-period-toggle">
+          <button class="spend-period-btn active" onclick="setSpendPeriod('week',this)">This week</button>
+          <button class="spend-period-btn" onclick="setSpendPeriod('month',this)">30 days</button>
+          <button class="spend-period-btn" onclick="setSpendPeriod('year',this)">This year</button>
+          <button class="spend-period-btn" onclick="setSpendPeriod('all',this)">All time</button>
+        </div>
+      </div>
+      <div class="spend-totals-row">
+        <div class="spend-total-block">
+          <div class="spend-total-label">🏥 Medical</div>
+          <div class="spend-total-val" id="spend-total-med">$0.00</div>
+        </div>
+        <div class="spend-total-divider">+</div>
+        <div class="spend-total-block">
+          <div class="spend-total-label">🛍 Recreational</div>
+          <div class="spend-total-val" id="spend-total-rec">$0.00</div>
+        </div>
+        <div class="spend-total-divider">=</div>
+        <div class="spend-total-block is-grand">
+          <div class="spend-total-label">Grand Total</div>
+          <div class="spend-total-val" id="spend-total-grand">$0.00</div>
+        </div>
+      </div>
+      <div class="spend-sub" id="spend-sub"></div>
+      <div class="spend-rows" id="spend-rows"></div>
+    </div>
+
+    <!-- Remaining -->
+    <p class="section-label">Estimated remaining today</p>
+    <div class="rem-grid">
+      <div class="rem-card" id="rem-flower-card">
+        <div class="r-label" id="rem-flower-label">Dried flower</div>
+        <div class="r-val" id="rem-flower">0.00 g</div>
+        <div class="r-sub" id="rem-flower-sub">estimated remaining</div>
+        <div class="r-pct" id="rem-flower-pct"></div>
+      </div>
+      <div class="rem-card" id="rem-thc-card">
+        <div class="r-label" id="rem-thc-label">THC (processed)</div>
+        <div class="r-val" id="rem-thc">0.00 g</div>
+        <div class="r-sub" id="rem-thc-sub">estimated remaining</div>
+        <div class="r-pct" id="rem-thc-pct"></div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+    <p class="section-label">Purchase history by week</p>
+    <div id="weekly-history"></div>
+
+    <hr class="section-divider">
+    <p class="section-label">Calendar view</p>
+
+    <!-- Calendar nav -->
+    <div class="cal-nav">
+      <div class="cal-nav-btns">
+        <button class="cal-nav-btn" onclick="calShift(-1)">‹ Prev</button>
+        <button class="cal-nav-btn today-btn" onclick="calGoToday()">Today</button>
+        <button class="cal-nav-btn" onclick="calShift(1)">Next ›</button>
+      </div>
+      <div class="cal-nav-title" id="cal-month-label"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="cal-legend">
+      <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:var(--green);border-radius:50%"></div>Medical purchase</div>
+      <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:var(--purple);border-radius:50%"></div>Recreational purchase</div>
+      <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:var(--amber);border-radius:50%"></div>Allotment recovery</div>
+      <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:var(--green);border:2px solid var(--green);border-radius:3px"></div>Today</div>
+    </div>
+
+    <!-- Day-of-week headers -->
+    <div class="cal-grid" id="cal-dow-row"></div>
+
+    <!-- Calendar cells -->
+    <div class="cal-grid" id="cal-cells"></div>
+
+    <!-- Detail panel shown on cell click -->
+    <div class="cal-detail" id="cal-detail">
+      <div class="cal-detail-title" id="cal-detail-title"></div>
+      <div id="cal-detail-body"></div>
+    </div>
+
+    <hr class="section-divider">
+    <p class="section-label">Allotment recovery schedule</p>
+    <div id="recovery-timeline"></div>
+
+    <hr class="section-divider">
+    <p class="footer-note">
+      <strong>How Maryland calculates your limit:</strong> Both dried flower and THC products draw from one shared percentage pool.
+      % used = (flower bought ÷ flower certified) + (THC bought ÷ THC certified).
+      Remaining = certified amount × (1 − % used).
+      Purchases expire from the rolling window 30 days after purchase date, freeing up that percentage.
+      <br><br>
+      Data saves automatically to your browser's local storage. Nothing is sent to any server — all calculations happen in your browser.
+      Export JSON regularly as a backup. Source code available on <a href="https://github.com" target="_blank">GitHub</a>.
+    </p>
+
+  </div><!-- /tab-allotment -->
+
+  <!-- ══════════════════════════════════════════
+       JOURNAL TAB
+  ══════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-journal">
+
+    <!-- Add / Edit form -->
+    <div class="jf-card">
+      <div class="jf-title" id="jf-form-title">Add product review</div>
+
+      <!-- Quick-fill from purchase log -->
+      <div class="jf-fill-row">
+        <div class="jf-field" style="flex:1">
+          <label>Fill from a purchase <span style="font-weight:400;text-transform:none;letter-spacing:0;opacity:0.6">— optional, auto-fills fields below</span></label>
+          <select id="jf-fill-from" onchange="fillFromPurchase()">
+            <option value="">— select a purchase to pre-fill —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="jf-grid">
+        <div class="jf-field">
+          <label>Product name</label>
+          <input type="text" id="jf-name" placeholder="e.g. Florida Kush, Orange Z RSO">
+        </div>
+        <div class="jf-field">
+          <label>Producer / brand</label>
+          <input type="text" id="jf-brand" placeholder="e.g. Evermore, Grassroots">
+        </div>
+      </div>
+
+      <div class="jf-grid three">
+        <div class="jf-field">
+          <label>Product type</label>
+          <select id="jf-type">
+            <option value="">— select —</option>
+            <option>Flower</option><option>Pre-roll</option><option>Vape</option>
+            <option>RSO</option><option>Concentrate</option><option>Edible</option>
+            <option>Tincture</option><option>Topical</option><option>Other</option>
+          </select>
+        </div>
+        <div class="jf-field">
+          <label>Dispensary</label>
+          <input type="text" id="jf-dispensary" placeholder="e.g. Herbiculture">
+        </div>
+        <div class="jf-field">
+          <label>Date purchased</label>
+          <input type="date" id="jf-date">
+        </div>
+      </div>
+
+      <div class="jf-grid">
+        <div class="jf-field">
+          <label>Strain / type</label>
+          <select id="jf-strain">
+            <option value="">— select —</option>
+            <option>Indica</option><option>Sativa</option><option>Hybrid</option><option>N/A</option>
+          </select>
+        </div>
+        <div class="jf-field">
+          <label>Link to purchase log entry</label>
+          <select id="jf-linked">
+            <option value="">— none —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Ratings: 5 dimensions -->
+      <div class="ratings-section">
+        <div class="ratings-label">Ratings</div>
+        <div class="ratings-grid">
+          <div class="rating-item">
+            <div class="stars" id="stars-smell" data-val="0">
+              <span class="star" data-i="1">★</span><span class="star" data-i="2">★</span><span class="star" data-i="3">★</span><span class="star" data-i="4">★</span><span class="star" data-i="5">★</span>
+            </div>
+            <div class="rating-item-label">Smell</div>
+          </div>
+          <div class="rating-item">
+            <div class="stars" id="stars-taste" data-val="0">
+              <span class="star" data-i="1">★</span><span class="star" data-i="2">★</span><span class="star" data-i="3">★</span><span class="star" data-i="4">★</span><span class="star" data-i="5">★</span>
+            </div>
+            <div class="rating-item-label">Taste</div>
+          </div>
+          <div class="rating-item">
+            <div class="stars" id="stars-effects" data-val="0">
+              <span class="star" data-i="1">★</span><span class="star" data-i="2">★</span><span class="star" data-i="3">★</span><span class="star" data-i="4">★</span><span class="star" data-i="5">★</span>
+            </div>
+            <div class="rating-item-label">Effects</div>
+          </div>
+          <div class="rating-item">
+            <div class="stars" id="stars-potency" data-val="0">
+              <span class="star" data-i="1">★</span><span class="star" data-i="2">★</span><span class="star" data-i="3">★</span><span class="star" data-i="4">★</span><span class="star" data-i="5">★</span>
+            </div>
+            <div class="rating-item-label">Potency</div>
+          </div>
+          <div class="rating-item">
+            <div class="stars" id="stars-value" data-val="0">
+              <span class="star" data-i="1">★</span><span class="star" data-i="2">★</span><span class="star" data-i="3">★</span><span class="star" data-i="4">★</span><span class="star" data-i="5">★</span>
+            </div>
+            <div class="rating-item-label">Value</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="jf-grid full" style="margin-bottom:14px;">
+        <div class="jf-field">
+          <label>Notes</label>
+          <textarea id="jf-notes" placeholder="Flavor profile, effects description, would you buy again, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="jf-actions">
+        <button class="jf-save-btn" onclick="saveJournalEntry()">Save review</button>
+        <button class="jf-cancel-btn" id="jf-cancel-btn" style="display:none" onclick="cancelJournalEdit()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="product-controls">
+      <input type="text" id="jf-search" placeholder="🔍  Search products…" oninput="renderJournal()">
+      <label>Sort</label>
+      <select id="journal-sort" onchange="renderJournal()">
+        <option value="date-desc">Newest first</option>
+        <option value="date-asc">Oldest first</option>
+        <option value="rating-desc">Highest rated</option>
+        <option value="rating-asc">Lowest rated</option>
+        <option value="name-asc">Name A–Z</option>
+      </select>
+      <label>Type</label>
+      <select id="journal-filter-type" onchange="renderJournal()">
+        <option value="">All types</option>
+        <option>Flower</option><option>Pre-roll</option><option>Vape</option>
+        <option>RSO</option><option>Concentrate</option><option>Edible</option>
+        <option>Tincture</option><option>Topical</option><option>Other</option>
+      </select>
+    </div>
+
+    <div id="journal-list" class="product-grid"></div>
+
+  </div><!-- /tab-journal -->
+
+  <!-- ══════════════════════════════════════════
+       ARCHIVE TAB
+  ══════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-archive">
+
+    <div class="archive-header">
+      <div>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+          All purchases outside the active 30-day window. These no longer affect your allotment but are kept here for your records.
+        </p>
+      </div>
+      <div class="archive-filter-row">
+        <label>Filter by year</label>
+        <select id="archive-year-filter" onchange="renderArchive()">
+          <option value="">All years</option>
+        </select>
+        <label>Type</label>
+        <select id="archive-type-filter" onchange="renderArchive()">
+          <option value="">All</option>
+          <option value="med">Medical</option>
+          <option value="rec">Recreational</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="archive-summary-cards" class="summary-grid" style="margin-bottom:1.5rem;"></div>
+    <div id="archive-list"></div>
+
+  </div><!-- /tab-archive -->
+
+</div><!-- /page -->
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal">
+    <h3>Reset all data?</h3>
+    <p>This clears all purchases, settings, and reviews. Export a JSON backup first if you want to keep your data.</p>
+    <div class="modal-btns">
+      <button onclick="closeReset()">Cancel</button>
+      <button class="confirm" onclick="doReset()">Yes, reset everything</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ─────────────────────────────────────────
+   CONSTANTS & STATE
+───────────────────────────────────────── */
+const KEY  = 'mmj_tracker_v4';
+const JKEY = 'mmj_journal_v2';
+
+let purchases      = [];
+let nextId         = 1;
+let journalEntries = [];
+let journalNextId  = 1;
+let editingJId     = null;
+let saveTimer      = null;
+
+/* ─────────────────────────────────────────
+   DATE HELPERS
+───────────────────────────────────────── */
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+function parseDate(s) { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtDisplay(s) { return parseDate(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function fmtShort(s)   { return parseDate(s).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function addDays(s,n)  { const d=parseDate(s); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function daysBetween(a,b){ return Math.round((parseDate(b)-parseDate(a))/86400000); }
+
+/* ─────────────────────────────────────────
+   UI HELPERS
+───────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function setSaveIndicator(msg) {
+  const el = document.getElementById('save-indicator');
+  el.textContent = msg; el.style.opacity='1';
+}
+function isDark() { return window.matchMedia('(prefers-color-scheme: dark)').matches; }
+
+/* ─────────────────────────────────────────
+   DROPDOWNS
+───────────────────────────────────────── */
+function toggleDD(id) {
+  const dd = document.getElementById(id);
+  const open = dd.classList.contains('open');
+  document.querySelectorAll('.dd').forEach(d=>d.classList.remove('open'));
+  if (!open) dd.classList.add('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.btn-group')) document.querySelectorAll('.dd').forEach(d=>d.classList.remove('open'));
+});
+
+/* ─────────────────────────────────────────
+   MODAL
+───────────────────────────────────────── */
+function openReset()  { document.getElementById('reset-modal').classList.add('open'); }
+function closeReset() { document.getElementById('reset-modal').classList.remove('open'); }
+function doReset() {
+  closeReset();
+  purchases=[]; nextId=1;
+  document.getElementById('entries-body').innerHTML='';
+  document.getElementById('cert-flower').value  = 120;
+  document.getElementById('cert-thc').value     = 36;
+  document.getElementById('flower-allot').value = 120;
+  document.getElementById('conc-allot').value   = 36;
+  document.getElementById('snapshot-date').value= todayStr();
+  addRow(); save(); recalc();
+  showToast('Data reset');
+}
+document.getElementById('reset-modal').addEventListener('click', function(e){ if(e.target===this)closeReset(); });
+
+/* ─────────────────────────────────────────
+   SAVE / LOAD
+───────────────────────────────────────── */
+function buildDataObject() {
+  return {
+    version:      '1.12',
+    exportedAt:   new Date().toISOString(),
+    certFlower:   document.getElementById('cert-flower').value,
+    certTHC:      document.getElementById('cert-thc').value,
+    flowerAllot:  document.getElementById('flower-allot').value,
+    concAllot:    document.getElementById('conc-allot').value,
+    snapshotDate: document.getElementById('snapshot-date').value,
+    purchases: purchases.map(p => {
+      const row = document.getElementById('row-'+p.id);
+      if (!row) return null;
+      const ins      = row.querySelectorAll('input');
+      const isMg     = row.querySelector('.unit-toggle')?.classList.contains('is-mg') || false;
+      const thcRaw   = parseFloat(row.querySelector('input[data-thc]')?.value) || 0;
+      // Always store THC in grams in the JSON — display unit is separate
+      const thcGrams = isMg ? thcRaw / 1000 : thcRaw;
+      const mrBtn    = row.querySelector('.mr-toggle');
+      const isRec    = mrBtn ? mrBtn.dataset.rec === '1' : false;
+      const priceVal = row.querySelector('input[data-price]')?.value || '';
+      return { id:p.id, date:ins[0].value, desc:ins[1].value, flower:ins[2].value,
+               conc: thcGrams.toString(), thcUnit: isMg ? 'mg' : 'g', price: priceVal, isRec };
+    }).filter(Boolean),
+    journal:       journalEntries,
+    journalNextId: journalNextId
+  };
+}
+
+function loadDataObject(data) {
+  document.getElementById('cert-flower').value   = data.certFlower   ?? data.certifiedFlower ?? 120;
+  document.getElementById('cert-thc').value      = data.certTHC      ?? data.certifiedTHC    ?? 36;
+  document.getElementById('flower-allot').value  = data.flowerAllot  ?? 120;
+  document.getElementById('conc-allot').value    = data.concAllot    ?? 36;
+  document.getElementById('snapshot-date').value = data.snapshotDate ?? todayStr();
+  if (data.purchases?.length) {
+    data.purchases.forEach(p => {
+      const unit = p.thcUnit || 'g';
+      const concG = parseFloat(p.conc) || 0;
+      // conc in JSON is always grams (v1.15+)
+      // For older exports where conc may be raw display value, detect by unit
+      // If unit is mg and value looks like it's already in mg (> 100), treat as mg directly
+      // If unit is mg and value looks like grams (< 10), convert to mg for display
+      let displayVal;
+      if (unit === 'mg') {
+        // v1.15+: concG is in grams, display as mg
+        // pre-v1.15: concG may already be mg raw value
+        // Heuristic: if > 50, it was stored as raw mg; if < 50, it's grams needing conversion
+        displayVal = concG > 50 ? concG.toString() : (concG * 1000).toString();
+      } else {
+        displayVal = concG.toString();
+      }
+      addRow(p.date, p.desc, p.flower, displayVal, p.id, unit, p.price||'', p.isRec||false);
+    });
+  }
+  if (data.journal) {
+    journalEntries = data.journal;
+    journalNextId  = data.journalNextId || (Math.max(0,...data.journal.map(e=>e.id))+1);
+  }
+}
+
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(buildDataObject()));
+    setSaveIndicator('Saved ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
+  } catch(e) { setSaveIndicator('Save failed'); }
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{ document.getElementById('save-indicator').style.opacity='0.4'; }, 3000);
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return false;
+    loadDataObject(JSON.parse(raw));
+    return true;
+  } catch(e) {}
+  return false;
+}
+
+/* ─────────────────────────────────────────
+   PURCHASE ROWS
+───────────────────────────────────────── */
+function addRow(date, desc, flower, conc, forcedId, thcUnit, price, isRec) {
+  date=date||todayStr(); desc=desc||''; flower=flower||''; conc=conc||''; price=price||'';
+  thcUnit = thcUnit || 'g';
+  isRec   = isRec   || false;
+  const id = forcedId!=null ? forcedId : nextId++;
+  if (forcedId!=null && forcedId>=nextId) nextId=forcedId+1;
+  purchases.push({id});
+  const body = document.getElementById('entries-body');
+  const div  = document.createElement('div');
+  const group = document.createElement('div');
+  group.className = 'entry-group';
+  group.id = 'group-'+id;
+
+  div.className='entry-row'+(isRec?' is-rec':''); div.id='row-'+id;
+  const isMg = thcUnit === 'mg';
+  div.innerHTML =
+    '<input type="date" value="'+date+'" oninput="save();recalc()">' +
+    '<input type="text" placeholder="e.g. Blue Dream 3.5g" value="'+desc.replace(/"/g,'&quot;')+'" oninput="save();recalc()">' +
+    '<input type="number" class="qty-input" placeholder="0.00" value="'+flower+'" min="0" step="0.01" oninput="save();recalc()">' +
+    '<button class="pct-btn" onclick="toggleCalc('+id+')" title="Calculate THC from weight × potency %">%</button>' +
+    '<input type="number" class="qty-input" data-thc="1" placeholder="0.00" value="'+conc+'" min="0" step="'+(isMg?'1':'0.01')+'" oninput="save();recalc()">' +
+    '<button class="unit-toggle'+(isMg?' is-mg':'')+'" onclick="toggleUnit('+id+')" title="Click to switch between grams and milligrams"><span class="ut-g">g</span><span class="ut-mg">mg</span></button>' +
+    '<input type="number" class="price-input" data-price="1" placeholder="0.00" value="'+price+'" min="0" step="0.01" oninput="save();recalc()">' +
+    '<button class="mr-toggle'+(isRec?' is-rec':'')+'" data-rec="'+(isRec?'1':'0')+'" onclick="toggleRec('+id+')" title="Toggle Medical / Recreational"><span class="mt-m">M</span><span class="mt-r">R</span></button>' +
+    '<button class="del-btn" onclick="delRow('+id+')" title="Remove">✕</button>';
+
+  // Calculator panel — full-width block inside the group, below the row
+  const calc = document.createElement('div');
+  calc.className = 'thc-calc';
+  calc.id = 'calc-'+id;
+  calc.innerHTML =
+    '<div class="thc-calc-field">' +
+      '<div class="thc-calc-label">Product weight (g)</div>' +
+      '<input type="number" id="calc-wt-'+id+'" placeholder="e.g. 1.0" min="0" step="0.001" oninput="updateCalc('+id+')">' +
+    '</div>' +
+    '<div class="thc-calc-field">' +
+      '<div class="thc-calc-label">THC potency %</div>' +
+      '<input type="number" id="calc-pct-'+id+'" placeholder="e.g. 78.49" min="0" max="100" step="0.01" oninput="updateCalc('+id+')">' +
+    '</div>' +
+    '<div class="thc-calc-result" id="calc-result-'+id+'">— g THC</div>' +
+    '<button class="thc-calc-apply" id="calc-apply-'+id+'" onclick="applyCalc('+id+')" disabled>Apply →</button>';
+
+  group.appendChild(div);
+  group.appendChild(calc);
+  body.appendChild(group);
+  recalc();
+}
+
+function toggleRec(id) {
+  const row = document.getElementById('row-'+id);
+  const btn = row?.querySelector('.mr-toggle');
+  if (!row || !btn) return;
+  const isRec = btn.dataset.rec === '1' ? false : true; // flip
+  btn.dataset.rec = isRec ? '1' : '0';
+  btn.classList.toggle('is-rec', isRec);
+  row.classList.toggle('is-rec', isRec);
+  save(); recalc();
+}
+
+function delRow(id) {
+  purchases=purchases.filter(p=>p.id!==id);
+  document.getElementById('group-'+id)?.remove();
+  save(); recalc();
+}
+
+function toggleCalc(id) {
+  const panel = document.getElementById('calc-'+id);
+  const btn   = document.querySelector('#row-'+id+' .pct-btn');
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('open');
+  if (btn) btn.classList.toggle('active', isOpen);
+  if (isOpen) {
+    // Focus weight field for quick entry
+    setTimeout(()=>document.getElementById('calc-wt-'+id)?.focus(), 50);
+  }
+}
+
+function updateCalc(id) {
+  const wt  = parseFloat(document.getElementById('calc-wt-'+id)?.value)  || 0;
+  const pct = parseFloat(document.getElementById('calc-pct-'+id)?.value) || 0;
+  const resultEl = document.getElementById('calc-result-'+id);
+  const applyBtn = document.getElementById('calc-apply-'+id);
+  if (!resultEl || !applyBtn) return;
+
+  if (wt > 0 && pct > 0) {
+    const thcG  = wt * (pct / 100);
+    const thcMg = thcG * 1000;
+    // Show both for clarity
+    resultEl.textContent = thcG.toFixed(4) + ' g  (' + thcMg.toFixed(1) + ' mg)';
+    applyBtn.disabled = false;
+  } else {
+    resultEl.textContent = '— g THC';
+    applyBtn.disabled = true;
+  }
+}
+
+function applyCalc(id) {
+  const wt  = parseFloat(document.getElementById('calc-wt-'+id)?.value)  || 0;
+  const pct = parseFloat(document.getElementById('calc-pct-'+id)?.value) || 0;
+  if (!wt || !pct) return;
+
+  const thcG  = wt * (pct / 100);
+  const row   = document.getElementById('row-'+id);
+  const input = row?.querySelector('input[data-thc]');
+  const btn   = row?.querySelector('.unit-toggle');
+  if (!input || !btn) return;
+
+  const isMg = btn.classList.contains('is-mg');
+  if (isMg) {
+    input.value = (thcG * 1000).toFixed(1);
+  } else {
+    input.value = thcG.toFixed(4);
+  }
+
+  // Close the panel
+  toggleCalc(id);
+  save(); recalc();
+}
+
+function toggleUnit(id) {
+  const row = document.getElementById('row-'+id);
+  if (!row) return;
+  const btn   = row.querySelector('.unit-toggle');
+  const input = row.querySelector('input[data-thc]');
+  if (!input) return;
+  const isMg  = btn.classList.toggle('is-mg');
+  const cur   = parseFloat(input.value) || 0;
+  if (isMg && cur > 0 && cur < 10) {
+    input.value = (cur * 1000).toFixed(0);
+  } else if (!isMg && cur >= 10) {
+    input.value = (cur / 1000).toFixed(3).replace(/\.?0+$/, '');
+  }
+  input.step        = isMg ? '1' : '0.01';
+  input.placeholder = isMg ? '0' : '0.00';
+  save(); recalc();
+}
+
+function getPurchaseData() {
+  return purchases.map(p => {
+    const row=document.getElementById('row-'+p.id); if(!row)return null;
+    const ins=row.querySelectorAll('input'); if(!ins[0].value)return null;
+    const isMg    = row.querySelector('.unit-toggle')?.classList.contains('is-mg') || false;
+    const thcInput = row.querySelector('input[data-thc]');
+    const rawConc  = parseFloat(thcInput ? thcInput.value : ins[3].value)||0;
+    const concG    = isMg ? rawConc / 1000 : rawConc;
+    const priceInput = row.querySelector('input[data-price]');
+    const price = parseFloat(priceInput ? priceInput.value : 0) || 0;
+    const mrBtn = row.querySelector('.mr-toggle');
+    const isRec = mrBtn ? mrBtn.dataset.rec === '1' : false;
+    return { id:p.id, date:ins[0].value, desc:ins[1].value||'(no description)',
+             flower:parseFloat(ins[2].value)||0, conc:concG,
+             concRaw:rawConc, thcUnit: isMg ? 'mg' : 'g', price, isRec };
+  }).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+let spendPeriod = 'week';
+
+function setSpendPeriod(period, btn) {
+  spendPeriod = period;
+  document.querySelectorAll('.spend-period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSpending(getPurchaseData());
+}
+
+function renderSpending(allData) {
+  const now    = todayStr();
+  const today  = parseDate(now);
+
+  let fromDate, label;
+  if (spendPeriod === 'week') {
+    const d = new Date(today); d.setDate(d.getDate() - d.getDay());
+    fromDate = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    label = 'This week (Sun–Sat)';
+  } else if (spendPeriod === 'month') {
+    fromDate = addDays(now, -30);
+    label = 'Last 30 days';
+  } else if (spendPeriod === 'year') {
+    fromDate = today.getFullYear() + '-01-01';
+    label = 'This year (' + today.getFullYear() + ')';
+  } else {
+    fromDate = '0000-00-00';
+    label = 'All time';
+  }
+
+  const inPeriod = allData.filter(p => p.date >= fromDate && p.price > 0);
+  const medPurch = inPeriod.filter(p => !p.isRec);
+  const recPurch = inPeriod.filter(p =>  p.isRec);
+  const medTotal = medPurch.reduce((s,p) => s+p.price, 0);
+  const recTotal = recPurch.reduce((s,p) => s+p.price, 0);
+  const grand    = medTotal + recTotal;
+
+  document.getElementById('spend-total-med').textContent   = '$' + medTotal.toFixed(2);
+  document.getElementById('spend-total-rec').textContent   = '$' + recTotal.toFixed(2);
+  document.getElementById('spend-total-grand').textContent = '$' + grand.toFixed(2);
+  document.getElementById('spend-sub').textContent =
+    label + (inPeriod.length
+      ? ' · ' + inPeriod.length + ' purchase' + (inPeriod.length!==1?'s with prices':'with price')
+      : ' · no purchases with price logged');
+
+  if (!inPeriod.length) {
+    document.getElementById('spend-rows').innerHTML =
+      '<div class="spend-empty">No priced purchases in this period — add prices to your purchase log above.</div>';
+    return;
+  }
+
+  // Build bar breakdown grouped by desc, split by type
+  function buildBars(purchases, color) {
+    if (!purchases.length) return '';
+    const byItem = {};
+    purchases.forEach(p => { byItem[p.desc] = (byItem[p.desc]||0) + p.price; });
+    const sorted = Object.entries(byItem).sort((a,b)=>b[1]-a[1]);
+    const top    = sorted.slice(0,5);
+    const other  = sorted.slice(5).reduce((s,[,v])=>s+v,0);
+    if (other>0) top.push(['Other',other]);
+    const max = top[0][1];
+    return top.map(([name,amt]) =>
+      '<div class="spend-row">' +
+        '<div class="spend-row-label" title="'+name+'">'+name+'</div>' +
+        '<div class="spend-row-bar-track"><div class="spend-row-bar-fill" style="width:'+Math.round(amt/max*100)+'%;background:'+color+'"></div></div>' +
+        '<div class="spend-row-amt">$'+amt.toFixed(2)+'</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  let html = '';
+  if (medPurch.length) {
+    html += '<div class="spend-type-header" style="color:var(--green)">🏥 Medical &nbsp;<span style="font-weight:400;color:var(--text-muted)">$'+medTotal.toFixed(2)+'</span></div>';
+    html += buildBars(medPurch, 'var(--green)');
+  }
+  if (recPurch.length) {
+    if (medPurch.length) html += '<div style="border-top:1px solid var(--border);margin:10px 0"></div>';
+    html += '<div class="spend-type-header" style="color:var(--purple)">🛍 Recreational &nbsp;<span style="font-weight:400;color:var(--text-muted)">$'+recTotal.toFixed(2)+'</span></div>';
+    html += buildBars(recPurch, 'var(--purple)');
+  }
+
+  document.getElementById('spend-rows').innerHTML = html;
+}
+
+/* ─────────────────────────────────────────
+   CORE RECALC — Maryland percentage-pool formula
+   
+   MCA formula:
+     % flower used  = rawFlower / certFlower
+     % THC used     = rawTHC    / certTHC
+     totalPctUsed   = %flower + %THC          (combined, max 100%)
+     remainingPct   = 1 - totalPctUsed
+     remFlower      = certFlower × remainingPct
+     remTHC         = certTHC    × remainingPct
+
+   Starting point: user's snapshot balances from OneStop.
+   New purchases since snapshot reduce from those balances
+   using the same percentage logic.
+───────────────────────────────────────── */
+function recalc() {
+  const now          = todayStr();
+  const snapshotDate = document.getElementById('snapshot-date').value || now;
+  document.getElementById('today-label').textContent = fmtDisplay(now);
+
+  const certFlower = parseFloat(document.getElementById('cert-flower').value) || 120;
+  const certTHC    = parseFloat(document.getElementById('cert-thc').value)    || 36;
+  const snapFlower = parseFloat(document.getElementById('flower-allot').value) || 0;
+  const snapTHC    = parseFloat(document.getElementById('conc-allot').value)   || 0;
+
+  const allData      = getPurchaseData();
+  // Only MEDICAL purchases since snapshot count against allotment
+  const newPurchases = allData.filter(p => p.date >= snapshotDate && !p.isRec);
+  const allNew       = allData.filter(p => p.date >= snapshotDate); // for display totals
+
+  // Tally raw purchases since snapshot
+  let rawFlower = 0, rawTHC = 0;
+  newPurchases.forEach(p => { rawFlower += p.flower; rawTHC += p.conc; });
+
+  // Percentage each type consumed from the certified limit
+  const pctFlowerUsedNew = certFlower > 0 ? rawFlower / certFlower : 0;
+  const pctTHCUsedNew    = certTHC    > 0 ? rawTHC    / certTHC    : 0;
+  const pctNewTotal      = pctFlowerUsedNew + pctTHCUsedNew;
+
+  // Remaining = snapshot balances reduced by same percentage
+  // The snapshot already reflects previous usage, so we just subtract
+  // the percentage-equivalent of what was bought since then.
+  const remFlower = snapFlower - (pctNewTotal * certFlower) + (pctNewTotal * certFlower) - (rawFlower + pctTHCUsedNew * certFlower);
+  const remTHC    = snapTHC    - (rawTHC    + pctFlowerUsedNew * certTHC);
+
+  // Simpler equivalent:
+  // Each flower gram reduces: 1g from flower side, and (1/certFlower)*certTHC from THC side
+  // Each THC gram reduces: 1g from THC side, and (1/certTHC)*certFlower from flower side
+  const remFlowerCalc = snapFlower - rawFlower - (pctTHCUsedNew    * certFlower);
+  const remTHCCalc    = snapTHC    - rawTHC    - (pctFlowerUsedNew * certTHC);
+
+  // Pool percentage used since snapshot (what we can show as progress)
+  // We derive snapshot's pool% from the snapshot balances themselves
+  const snapPoolPct = certFlower > 0 ? (1 - snapFlower / certFlower) : 0;  // approximate from flower side
+  const totalPctUsed = Math.min(1, pctFlowerUsedNew + pctTHCUsedNew);
+  const pctUsedDisplay = totalPctUsed * 100;
+
+  // Bar
+  const bar = document.getElementById('pool-bar');
+  bar.style.width = Math.min(100, pctUsedDisplay).toFixed(1) + '%';
+  bar.style.background = pctUsedDisplay >= 90 ? 'var(--red)' : pctUsedDisplay >= 70 ? 'var(--amber)' : 'var(--green)';
+  document.getElementById('pool-pct-label').textContent = pctUsedDisplay.toFixed(1) + '%';
+  document.getElementById('pool-sub-left').textContent =
+    (pctFlowerUsedNew*100).toFixed(1)+'% flower + '+(pctTHCUsedNew*100).toFixed(1)+'% THC used';
+  document.getElementById('pool-sub-right').textContent =
+    Math.max(0,100 - pctUsedDisplay).toFixed(1) + '% remaining';
+
+  // Summary cards
+  document.getElementById('tot-flower').textContent = rawFlower.toFixed(2) + ' g';
+  document.getElementById('tot-thc').textContent    = rawTHC.toFixed(3)    + ' g';
+  document.getElementById('tot-flower-pct').textContent = (pctFlowerUsedNew*100).toFixed(1) + '% of flower cert';
+  document.getElementById('tot-thc-pct').textContent    = (pctTHCUsedNew   *100).toFixed(1) + '% of THC cert';
+  document.getElementById('tot-pool-pct').textContent   = pctUsedDisplay.toFixed(1) + '%';
+
+  // Remaining cards
+  setRemCard('rem-flower-card','rem-flower-label','rem-flower','rem-flower-sub','rem-flower-pct',
+    remFlowerCalc, certFlower, 'Dried flower');
+  setRemCard('rem-thc-card','rem-thc-label','rem-thc','rem-thc-sub','rem-thc-pct',
+    remTHCCalc, certTHC, 'THC');
+
+  renderWeekly(allData, now, certFlower, certTHC);
+  renderRecovery(newPurchases, now, remFlowerCalc, remTHCCalc, certFlower, certTHC);
+  renderSpending(allData);
+  updateExpiredToggle();
+  if(typeof calYear!=='undefined') renderCal();
+}
+
+function setRemCard(cardId, labelId, valId, subId, pctId, val, cert, label) {
+  const low = val < 0;
+  const el = document.getElementById(cardId);
+  el.style.background   = low ? 'var(--red-dim)'   : 'var(--green-dim)';
+  el.style.borderColor  = low ? 'var(--red)'        : 'var(--green)';
+  const textColor = low ? 'var(--red)' : 'var(--green)';
+  document.getElementById(labelId).style.color = textColor;
+  document.getElementById(valId).style.color   = textColor;
+  document.getElementById(valId).textContent   = val.toFixed(label==='THC' ? 3 : 2) + ' g';
+  document.getElementById(subId).textContent   = low ? 'over limit — check OneStop' : 'estimated remaining';
+  document.getElementById(subId).style.color   = textColor;
+  const pct = cert > 0 ? (val / cert * 100) : 0;
+  document.getElementById(pctId).textContent = Math.max(0, pct).toFixed(1) + '% of ' + cert.toFixed(0) + 'g cert';
+}
+
+/* ─────────────────────────────────────────
+   WEEKLY HISTORY
+───────────────────────────────────────── */
+function weekStart(s) {
+  const d=parseDate(s); d.setDate(d.getDate()-d.getDay());
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+
+function renderWeekly(allData, now, certFlower, certTHC) {
+  const el = document.getElementById('weekly-history');
+  if (!allData.length) { el.innerHTML='<p class="recovery-empty">No purchases logged yet.</p>'; return; }
+  const cutoff = addDays(now,-30);
+  const weeks  = {};
+  allData.forEach(p => {
+    const ws = weekStart(p.date);
+    if (!weeks[ws]) weeks[ws]=[];
+    weeks[ws].push(p);
+  });
+  let html='';
+  Object.keys(weeks).sort().reverse().forEach(ws => {
+    const we=addDays(ws,6), items=weeks[ws];
+    let wF=0,wC=0,wP=0; items.forEach(p=>{wF+=p.flower;wC+=p.conc;wP+=p.price||0;});
+    const wPct = certFlower>0 ? (wF/certFlower + wC/certTHC)*100 : 0;
+    const wPriceStr = wP>0 ? ' &nbsp;·&nbsp; $'+wP.toFixed(2) : '';
+    html += '<div class="week-group"><div class="week-group-header"><span class="week-group-label">'+fmtShort(ws)+' – '+fmtShort(we)+'</span><span class="week-group-meta">'+wPct.toFixed(1)+'% pool'+wPriceStr+'</span></div>';
+    items.slice().reverse().forEach(p => {
+      const expired = p.date <= cutoff;
+      const pctF = certFlower>0 ? (p.flower/certFlower*100) : 0;
+      const pctC = certTHC>0    ? (p.conc  /certTHC   *100) : 0;
+      const poolPct = (pctF+pctC).toFixed(1);
+      const tags = [];
+      if(p.flower>0) tags.push('<span class="tag flower">'+p.flower.toFixed(2)+'g flower</span>');
+      if(p.conc>0)   tags.push('<span class="tag conc">'+(p.thcUnit==='mg' ? p.concRaw.toFixed(0)+'mg' : p.conc.toFixed(3).replace(/\.?0+$/, '')+'g')+' THC</span>');
+      tags.push('<span class="tag pct">'+poolPct+'% pool</span>');
+      if(p.price>0)  tags.push('<span class="tag price">$'+p.price.toFixed(2)+'</span>');
+      if(p.isRec)    tags.push('<span class="tag rec">Rec</span>');
+      if(expired)    tags.push('<span class="tag expired">expired</span>');
+      html += '<div class="week-row'+(expired?' expired-row':'')+'"><span class="week-row-date">'+fmtShort(p.date)+'</span><span class="week-row-desc">'+p.desc+'</span><span class="week-row-tags">'+tags.join('')+'</span></div>';
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+/* ─────────────────────────────────────────
+   RECOVERY TIMELINE
+───────────────────────────────────────── */
+function renderRecovery(newPurchases, now, remFlower, remTHC, certFlower, certTHC) {
+  const el = document.getElementById('recovery-timeline');
+  const cutoff = addDays(now,-30);
+  const active = newPurchases.filter(p=>p.date>cutoff);
+  if (!active.length) {
+    el.innerHTML='<p class="recovery-empty">No purchases in the rolling 30-day window — allotment is fully available.</p>';
+    return;
+  }
+
+  const expMap = {};
+  active.forEach(p => {
+    const exp = addDays(p.date,30);
+    if (!expMap[exp]) expMap[exp]={flower:0,conc:0,items:[]};
+    expMap[exp].flower += p.flower;
+    expMap[exp].conc   += p.conc;
+    expMap[exp].items.push(p);
+  });
+
+  let runFlower=remFlower, runTHC=remTHC;
+  let html='';
+  Object.keys(expMap).sort().forEach(exp => {
+    const g=expMap[exp];
+    const diff=daysBetween(now,exp);
+    const dayLabel=diff===0?'today':diff===1?'tomorrow':diff>1?'in '+diff+' days':Math.abs(diff)+' days ago';
+
+    // Freed using percentage pool logic
+    const pctFreedFlower = certFlower>0 ? g.flower/certFlower : 0;
+    const pctFreedTHC    = certTHC>0    ? g.conc  /certTHC    : 0;
+    const pctFreed       = pctFreedFlower + pctFreedTHC;
+
+    const freedFlower    = pctFreed * certFlower;
+    const freedTHC       = pctFreed * certTHC;
+
+    runFlower += freedFlower;
+    runTHC    += freedTHC;
+
+    const dotClass = diff<=0 ? 'rc-dot' : 'rc-dot future';
+    const itemLines = g.items.map(p=>{
+      const parts=[]; if(p.flower>0)parts.push(p.flower.toFixed(2)+'g flower');
+      if(p.conc>0) parts.push(p.thcUnit==='mg' ? p.concRaw.toFixed(0)+'mg THC' : p.conc.toFixed(3).replace(/\.?0+$/,'')+'g THC');
+      return fmtShort(p.date)+': '+p.desc+(parts.length?' ('+parts.join(', ')+')':'');
+    }).join('<br>');
+
+    html += '<div class="recovery-item"><div class="rc-dot-col"><div class="'+dotClass+'"></div><div class="rc-line"></div></div><div class="rc-content">';
+    html += '<div class="rc-date-row"><span class="rc-date">'+fmtDisplay(exp)+'</span><span class="rc-days">'+dayLabel+'</span></div>';
+    html += '<div class="rc-badges">';
+    if(g.flower>0) html+='<span class="rc-badge flower">+'+g.flower.toFixed(2)+'g flower expires</span>';
+    if(g.conc>0)   html+='<span class="rc-badge conc">+'+g.conc.toFixed(3)+'g THC expires</span>';
+    html+='<span class="rc-badge pct">+'+(pctFreed*100).toFixed(1)+'% pool freed</span>';
+    html+='</div><div class="rc-items">'+itemLines+'</div>';
+    html+='<div class="rc-avail">After expiry: <span style="color:var(--green)">'+Math.max(0,runFlower).toFixed(2)+'g flower</span>';
+    html+=' &nbsp;·&nbsp; <span style="color:var(--blue)">'+Math.max(0,runTHC).toFixed(3)+'g THC</span></div>';
+    html+='</div></div>';
+  });
+  el.innerHTML = html || '<p class="recovery-empty">All purchases expiring today.</p>';
+}
+
+/* ─────────────────────────────────────────
+   JOURNAL — STARS
+───────────────────────────────────────── */
+const STAR_CATS = ['smell','taste','effects','potency','value'];
+
+function initStars() {
+  STAR_CATS.forEach(cat => {
+    const cont = document.getElementById('stars-'+cat);
+    cont.querySelectorAll('.star').forEach(star => {
+      star.addEventListener('click', () => {
+        const v=parseInt(star.dataset.i);
+        cont.dataset.val=v; renderStars(cont,v);
+      });
+      star.addEventListener('mouseenter',()=>renderStars(cont, parseInt(star.dataset.i)));
+      star.addEventListener('mouseleave',()=>renderStars(cont, parseInt(cont.dataset.val)));
+    });
+  });
+}
+
+function renderStars(cont, val) {
+  cont.querySelectorAll('.star').forEach(s=>s.classList.toggle('lit', parseInt(s.dataset.i)<=val));
+}
+function setStarVal(cat,val) {
+  const c=document.getElementById('stars-'+cat); c.dataset.val=val; renderStars(c,val);
+}
+function getStarVal(cat) { return parseInt(document.getElementById('stars-'+cat).dataset.val)||0; }
+function resetStars()    { STAR_CATS.forEach(c=>setStarVal(c,0)); }
+
+/* ─────────────────────────────────────────
+   JOURNAL — LINKED DROPDOWN
+───────────────────────────────────────── */
+function populateLinked() {
+  const data = getPurchaseData().slice().reverse();
+
+  // Fill the "fill from purchase" selector
+  const fillSel = document.getElementById('jf-fill-from');
+  const fillCur = fillSel.value;
+  fillSel.innerHTML = '<option value="">— select a purchase to pre-fill —</option>';
+  data.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    const pts = [];
+    if (p.flower > 0) pts.push(p.flower.toFixed(2)+'g flower');
+    if (p.conc   > 0) pts.push((p.thcUnit==='mg' ? p.concRaw.toFixed(0)+'mg' : p.conc.toFixed(3).replace(/\.?0+$/,'')+'g')+' THC');
+    opt.textContent = p.date + ' — ' + p.desc + (pts.length ? ' (' + pts.join(', ') + ')' : '');
+    fillSel.appendChild(opt);
+  });
+  fillSel.value = fillCur;
+
+  // Fill the "link to purchase" selector
+  const sel = document.getElementById('jf-linked'), cur = sel.value;
+  sel.innerHTML = '<option value="">— none —</option>';
+  data.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    const pts = []; if(p.flower>0)pts.push(p.flower.toFixed(2)+'g flower'); if(p.conc>0)pts.push(p.conc.toFixed(3)+'g THC');
+    opt.textContent = p.date + ' — ' + p.desc + (pts.length ? ' (' + pts.join(', ') + ')' : '');
+    sel.appendChild(opt);
+  });
+  sel.value = cur;
+}
+
+// Guess product type from description keywords
+function guessType(desc) {
+  const d = desc.toLowerCase();
+  if (/\b(rso|rick simpson)\b/.test(d))                          return 'RSO';
+  if (/\b(vape|cart|cartridge|disposable|pen)\b/.test(d))        return 'Vape';
+  if (/\b(pre.?roll|preroll|joint|cone)\b/.test(d))              return 'Pre-roll';
+  if (/\b(concentrate|wax|shatter|rosin|hash|live resin|badder|budder|crumble|distillate)\b/.test(d)) return 'Concentrate';
+  if (/\b(edible|gummy|gummies|chocolate|candy|cookie|brownie|capsule|cap)\b/.test(d)) return 'Edible';
+  if (/\b(tincture|drop|sublingual)\b/.test(d))                  return 'Tincture';
+  if (/\b(topical|lotion|cream|salve|patch|balm)\b/.test(d))     return 'Topical';
+  if (/\b(flower|bud|oz|ounce|eighth|quarter|half)\b/.test(d))   return 'Flower';
+  return '';
+}
+
+// Parse a cleaner product name from the purchase description
+// e.g. "Grassroots Orange Z RSO" → name="Orange Z RSO", brand="Grassroots"
+function parseNameBrand(desc) {
+  // Common brand prefixes used by MD dispensaries
+  const brands = [
+    'Grassroots','Evermore','Curio','GTI','Verano','Charm City','MÜV','Muv',
+    'Culta','Chesapeake','Holistic Industries','Vireo','Ethos','Trulieve',
+    'Cansativa','AEssential','Harvest','Zen Leaf','Slurricane','Gold Leaf',
+  ];
+  for (const brand of brands) {
+    const re = new RegExp('^'+brand+'\\s+', 'i');
+    if (re.test(desc)) {
+      return { name: desc.replace(re, '').trim(), brand };
+    }
+  }
+  // If description has multiple words, treat first word as potential brand
+  const words = desc.trim().split(/\s+/);
+  if (words.length >= 3) {
+    return { name: words.slice(1).join(' '), brand: words[0] };
+  }
+  return { name: desc.trim(), brand: '' };
+}
+
+function fillFromPurchase() {
+  const sel = document.getElementById('jf-fill-from');
+  const id  = sel.value;
+  if (!id) return;
+
+  const p = getPurchaseData().find(p => String(p.id) === id);
+  if (!p) return;
+
+  const { name, brand } = parseNameBrand(p.desc);
+
+  // Only fill fields that are currently empty
+  const nameEl  = document.getElementById('jf-name');
+  const brandEl = document.getElementById('jf-brand');
+  const typeEl  = document.getElementById('jf-type');
+  const dateEl  = document.getElementById('jf-date');
+  const linkedEl= document.getElementById('jf-linked');
+
+  if (!nameEl.value.trim())  nameEl.value  = name;
+  if (!brandEl.value.trim()) brandEl.value = brand;
+  if (!typeEl.value)         typeEl.value  = guessType(p.desc);
+  if (!dateEl.value || dateEl.value === todayStr()) dateEl.value = p.date;
+
+  // Always set the linked field to match
+  linkedEl.value = id;
+
+  // Visual feedback
+  sel.style.borderColor = 'var(--green)';
+  setTimeout(() => sel.style.borderColor = '', 1200);
+}
+
+/* ─────────────────────────────────────────
+   JOURNAL — SAVE / EDIT / DELETE
+───────────────────────────────────────── */
+function saveJournalEntry() {
+  const name=document.getElementById('jf-name').value.trim();
+  if (!name) { showToast('Please enter a product name'); return; }
+  const entry = {
+    id:         editingJId!==null ? editingJId : journalNextId++,
+    date:       document.getElementById('jf-date').value || todayStr(),
+    name,
+    brand:      document.getElementById('jf-brand').value.trim(),
+    type:       document.getElementById('jf-type').value,
+    strain:     document.getElementById('jf-strain').value,
+    dispensary: document.getElementById('jf-dispensary').value.trim(),
+    linked:     document.getElementById('jf-linked').value,
+    smell:      getStarVal('smell'),
+    taste:      getStarVal('taste'),
+    effects:    getStarVal('effects'),
+    potency:    getStarVal('potency'),
+    value:      getStarVal('value'),
+    notes:      document.getElementById('jf-notes').value.trim(),
+  };
+  if (editingJId!==null) {
+    journalEntries=journalEntries.map(e=>e.id===editingJId?entry:e);
+  } else {
+    journalEntries.push(entry);
+  }
+  saveJournal(); resetJournalForm(); renderJournal();
+  showToast(editingJId!==null?'Review updated':'Review saved');
+  editingJId=null;
+}
+
+function saveJournal() {
+  localStorage.setItem(JKEY, JSON.stringify({entries:journalEntries, nextId:journalNextId}));
+  save(); // also save to main key
+}
+
+function loadJournal() {
+  try {
+    const raw=localStorage.getItem(JKEY);
+    if (!raw) return;
+    const d=JSON.parse(raw);
+    journalEntries=d.entries||[]; journalNextId=d.nextId||1;
+  } catch(e){}
+}
+
+function resetJournalForm() {
+  ['jf-name','jf-brand','jf-notes','jf-dispensary'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('jf-type').value='';
+  document.getElementById('jf-strain').value='';
+  document.getElementById('jf-date').value=todayStr();
+  document.getElementById('jf-linked').value='';
+  document.getElementById('jf-fill-from').value='';
+  resetStars();
+  document.getElementById('jf-form-title').textContent='Add product review';
+  document.getElementById('jf-cancel-btn').style.display='none';
+  editingJId=null;
+}
+
+function cancelJournalEdit() { resetJournalForm(); }
+
+function editJournalEntry(id) {
+  const e=journalEntries.find(j=>j.id===id); if(!e)return;
+  editingJId=id;
+  document.getElementById('jf-name').value       = e.name;
+  document.getElementById('jf-brand').value      = e.brand      ||'';
+  document.getElementById('jf-type').value       = e.type       ||'';
+  document.getElementById('jf-strain').value     = e.strain     ||'';
+  document.getElementById('jf-dispensary').value = e.dispensary ||'';
+  document.getElementById('jf-date').value       = e.date;
+  document.getElementById('jf-linked').value     = e.linked     ||'';
+  document.getElementById('jf-notes').value      = e.notes      ||'';
+  STAR_CATS.forEach(c=>setStarVal(c,e[c]||0));
+  document.getElementById('jf-form-title').textContent='Edit review';
+  document.getElementById('jf-cancel-btn').style.display='inline-block';
+  document.getElementById('jf-card')?.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelector('.jf-card').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function deleteJournalEntry(id) {
+  journalEntries=journalEntries.filter(e=>e.id!==id);
+  saveJournal(); renderJournal();
+  showToast('Review deleted');
+}
+
+/* ─────────────────────────────────────────
+   JOURNAL — RENDER
+───────────────────────────────────────── */
+function starsHTML(val, size=13) {
+  let h='';
+  for(let i=1;i<=5;i++) h+='<span class="'+(i<=val?'pc-star-lit':'pc-star-empty')+'">★</span>';
+  return h;
+}
+
+function avgRating(e) {
+  const vals=STAR_CATS.map(c=>e[c]||0).filter(v=>v>0);
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+}
+
+function renderJournal() {
+  const list = document.getElementById('journal-list');
+  if (!journalEntries.length) {
+    list.innerHTML='<p class="journal-empty">No reviews yet — add your first product above.</p>';
+    return;
+  }
+  const sort    = document.getElementById('journal-sort').value;
+  const filter  = document.getElementById('journal-filter-type').value;
+  const search  = (document.getElementById('jf-search').value||'').toLowerCase().trim();
+
+  let entries = [...journalEntries];
+  if (filter) entries = entries.filter(e=>e.type===filter);
+  if (search) entries = entries.filter(e=>
+    e.name.toLowerCase().includes(search) ||
+    (e.brand||'').toLowerCase().includes(search) ||
+    (e.dispensary||'').toLowerCase().includes(search) ||
+    (e.notes||'').toLowerCase().includes(search)
+  );
+  entries.sort((a,b)=>{
+    if(sort==='date-desc')   return b.date.localeCompare(a.date);
+    if(sort==='date-asc')    return a.date.localeCompare(b.date);
+    if(sort==='rating-desc') return avgRating(b)-avgRating(a);
+    if(sort==='rating-asc')  return avgRating(a)-avgRating(b);
+    if(sort==='name-asc')    return a.name.localeCompare(b.name);
+    return 0;
+  });
+
+  if (!entries.length) {
+    list.innerHTML='<p class="journal-empty">No products match your search.</p>';
+    return;
+  }
+
+  const purchases = getPurchaseData();
+  list.innerHTML = entries.map(e => {
+    const avg = avgRating(e);
+    const avgStr = avg>0 ? avg.toFixed(1) : '—';
+    const typeClass = (e.type||'Other').replace(/[^a-zA-Z-]/g,'');
+    const metaParts = [fmtDisplay(e.date)];
+    if(e.brand)      metaParts.push(e.brand);
+    if(e.dispensary) metaParts.push(e.dispensary);
+    if(e.strain)     metaParts.push(e.strain);
+    if(e.linked) {
+      const pd=purchases.find(p=>String(p.id)===String(e.linked));
+      if(pd) metaParts.push('→ '+pd.desc);
+    }
+    const ratingsHtml = STAR_CATS.map(cat => {
+      const v=e[cat]||0;
+      return '<div class="pc-rating"><div class="pc-rating-label">'+cat.charAt(0).toUpperCase()+cat.slice(1)+'</div><div class="pc-stars">'+starsHTML(v)+'</div></div>';
+    }).join('');
+
+    return `<div class="product-card">
+      <div class="pc-top">
+        <div>
+          <div class="pc-name">${e.name} ${avg>0?'<span class="pc-avg">'+avgStr+'★</span>':''}</div>
+          ${e.type?'<span class="pc-type '+typeClass+'">'+e.type+'</span>':''}
+        </div>
+        <div class="pc-actions">
+          <button class="pc-action" onclick="editJournalEntry(${e.id})" title="Edit">✎</button>
+          <button class="pc-action del" onclick="deleteJournalEntry(${e.id})" title="Delete">✕</button>
+        </div>
+      </div>
+      <div class="pc-meta">${metaParts.join(' · ')}</div>
+      <div class="pc-ratings">${ratingsHtml}</div>
+      ${e.notes?'<div class="pc-notes">'+e.notes.replace(/\n/g,'<br>')+'</div>':''}
+    </div>`;
+  }).join('');
+}
+
+/* ─────────────────────────────────────────
+   EXPORT JSON
+───────────────────────────────────────── */
+function exportJSON() {
+  document.querySelectorAll('.dd').forEach(d=>d.classList.remove('open'));
+  const blob=new Blob([JSON.stringify(buildDataObject(),null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='mmj-tracker-v1.15-'+todayStr()+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('JSON exported');
+}
+
+/* ─────────────────────────────────────────
+   EXPORT CSV
+───────────────────────────────────────── */
+function exportCSV() {
+  document.querySelectorAll('.dd').forEach(d=>d.classList.remove('open'));
+  const now=todayStr(), cutoff=addDays(now,-30);
+  const certFlower = parseFloat(document.getElementById('cert-flower').value)||120;
+  const certTHC    = parseFloat(document.getElementById('cert-thc').value)  ||36;
+  const snapDate   = document.getElementById('snapshot-date').value||now;
+  const allData    = getPurchaseData();
+
+  let csv='Maryland MMJ Allotment Tracker v1.15\n';
+  csv+='Exported,'+fmtDisplay(now)+'\n';
+  csv+='Snapshot date,'+fmtDisplay(snapDate)+'\n\n';
+  csv+='Certified Amounts\n';
+  csv+='Dried flower (g),'+certFlower.toFixed(2)+'\n';
+  csv+='THC processed (g),'+certTHC.toFixed(2)+'\n\n';
+  csv+='Snapshot Remaining Balances\n';
+  csv+='Flower remaining (g),'+document.getElementById('flower-allot').value+'\n';
+  csv+='THC remaining (g),'+document.getElementById('conc-allot').value+'\n\n';
+  csv+='Purchase Log\n';
+  csv+='Date,Description,Flower (g),THC Amount,THC Unit,THC (g),Price ($),% Flower Cert,% THC Cert,% Pool Used,In 30-day Window,Expires On\n';
+  allData.forEach(p=>{
+    const pF=(certFlower>0?p.flower/certFlower*100:0).toFixed(1);
+    const pC=(certTHC>0?p.conc/certTHC*100:0).toFixed(1);
+    const pp=((certFlower>0?p.flower/certFlower:0)+(certTHC>0?p.conc/certTHC:0))*100;
+    const inWin=p.date>cutoff?'Yes':'No';
+    const exp=addDays(p.date,30);
+    const thcDisplay = p.thcUnit==='mg' ? p.concRaw.toFixed(0) : p.conc.toFixed(3).replace(/\.?0+$/,'');
+    const priceStr = p.price>0 ? p.price.toFixed(2) : '';
+    csv+='"'+fmtDisplay(p.date)+'","'+p.desc+'",'+p.flower.toFixed(2)+','+thcDisplay+','+(p.thcUnit||'g')+','+p.conc.toFixed(4)+','+priceStr+','+pF+'%,'+pC+'%,'+pp.toFixed(1)+'%,'+inWin+',"'+fmtDisplay(exp)+'"\n';
+  });
+
+  csv+='\nProduct Journal\n';
+  csv+='Date,Name,Brand,Type,Strain,Dispensary,Smell,Taste,Effects,Potency,Value,Avg,Notes\n';
+  journalEntries.forEach(e=>{
+    const avg=avgRating(e);
+    csv+='"'+e.date+'","'+e.name+'","'+(e.brand||'')+'","'+(e.type||'')+'","'+(e.strain||'')+'","'+(e.dispensary||'')+'",'+
+      (e.smell||0)+','+(e.taste||0)+','+(e.effects||0)+','+(e.potency||0)+','+(e.value||0)+','+avg.toFixed(1)+',"'+((e.notes||'').replace(/"/g,'""'))+'"\n';
+  });
+
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='mmj-tracker-v1.15-'+now+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('CSV exported');
+}
+
+/* ─────────────────────────────────────────
+   IMPORT
+───────────────────────────────────────── */
+function triggerImport(type) {
+  document.querySelectorAll('.dd').forEach(d=>d.classList.remove('open'));
+  const input=document.getElementById('import-file-input');
+  input.accept=type==='json'?'.json':'.csv';
+  input._importType=type; input.value=''; input.click();
+}
+
+document.getElementById('import-file-input').addEventListener('change', function(){
+  const file=this.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try {
+      if(this._importType==='json') importJSON(e.target.result);
+      else importCSV(e.target.result);
+    } catch(err){ showToast('Import failed: '+err.message); }
+  };
+  reader.readAsText(file);
+});
+
+function importJSON(text) {
+  const data=JSON.parse(text);
+  if(!data.purchases&&!data.flowerAllot) throw new Error('Invalid JSON format');
+  purchases=[]; nextId=1; journalEntries=[]; journalNextId=1;
+  document.getElementById('entries-body').innerHTML='';
+  loadDataObject(data);
+  if(data.journal){ journalEntries=data.journal; journalNextId=data.journalNextId||(Math.max(0,...data.journal.map(e=>e.id))+1); }
+  save(); recalc(); renderJournal();
+  showToast('JSON imported successfully');
+}
+
+function importCSV(text) {
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+  let inPurchases=false, imported=[];
+  let flowerAllot=null, concAllot=null;
+  lines.forEach(l=>{
+    if(l.startsWith('Dried flower (g),')) flowerAllot=parseFloat(l.split(',')[1]);
+    if(l.startsWith('THC processed (g),')) concAllot=parseFloat(l.split(',')[1]);
+  });
+  lines.forEach(l=>{
+    if(l.startsWith('Date,Description')){inPurchases=true;return;}
+    if(!inPurchases)return;
+    if(!l||l.startsWith('Active')||l.startsWith('Note')||l.startsWith('Product')){inPurchases=false;return;}
+    const cols=[]; let cur='',inQ=false;
+    for(let i=0;i<l.length;i++){
+      if(l[i]==='"'){inQ=!inQ;continue;}
+      if(l[i]===','&&!inQ){cols.push(cur.trim());cur='';continue;}
+      cur+=l[i];
+    }
+    cols.push(cur.trim());
+    if(cols.length<4)return;
+    const dateObj=new Date(cols[0]); if(isNaN(dateObj))return;
+    const ds=dateObj.getFullYear()+'-'+pad(dateObj.getMonth()+1)+'-'+pad(dateObj.getDate());
+    // v1.09 CSV: cols[2]=flower, cols[3]=THC amount, cols[4]=unit (g/mg), cols[5]=THC in g
+    // older CSV: cols[2]=flower, cols[3]=THC in g
+    let thcVal, thcUnit='g';
+    if(cols[4]==='mg'||cols[4]==='g') {
+      // v1.09 format — use the raw display amount + unit
+      thcVal  = cols[3]; // store raw display value
+      thcUnit = cols[4];
+    } else {
+      // older format — THC is always in grams
+      thcVal  = cols[3];
+      thcUnit = 'g';
+    }
+    imported.push({date:ds, desc:cols[1], flower:parseFloat(cols[2])||0,
+                   conc:thcVal, thcUnit});
+  });
+  if(!imported.length) throw new Error('No purchase rows found in CSV');
+  purchases=[]; nextId=1; document.getElementById('entries-body').innerHTML='';
+  if(flowerAllot!==null) document.getElementById('flower-allot').value=flowerAllot;
+  if(concAllot!==null)   document.getElementById('conc-allot').value=concAllot;
+  document.getElementById('snapshot-date').value=todayStr();
+  imported.forEach(p=>addRow(p.date,p.desc,p.flower,p.conc,undefined,p.thcUnit));
+  save(); recalc();
+  showToast('CSV imported — '+imported.length+' purchases loaded');
+}
+
+/* ─────────────────────────────────────────
+   CALENDAR
+───────────────────────────────────────── */
+let calYear, calMonth; // currently displayed month
+
+function calInit() {
+  const now = new Date();
+  calYear  = now.getFullYear();
+  calMonth = now.getMonth();
+  // Render day-of-week headers once
+  const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('cal-dow-row').innerHTML =
+    dows.map(d=>'<div class="cal-dow">'+d+'</div>').join('');
+  renderCal();
+}
+
+function calShift(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0;  calYear++; }
+  if (calMonth <  0) { calMonth = 11; calYear--; }
+  renderCal();
+  // close detail panel when navigating
+  document.getElementById('cal-detail').classList.remove('open');
+}
+
+function calGoToday() {
+  const now = new Date();
+  calYear  = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCal();
+  document.getElementById('cal-detail').classList.remove('open');
+}
+
+function renderCal() {
+  const now     = todayStr();
+  const allData = getPurchaseData();
+
+  // Build lookup maps: date → purchases, date → expiries
+  const purchaseMap = {};
+  const expiryMap   = {};
+  allData.forEach(p => {
+    if (!purchaseMap[p.date]) purchaseMap[p.date] = [];
+    purchaseMap[p.date].push(p);
+    const exp = addDays(p.date, 30);
+    if (!expiryMap[exp]) expiryMap[exp] = [];
+    expiryMap[exp].push(p);
+  });
+
+  // Month label
+  const monthName = new Date(calYear, calMonth, 1)
+    .toLocaleDateString('en-US', {month:'long', year:'numeric'});
+  document.getElementById('cal-month-label').textContent = monthName;
+
+  // First day of month and total days
+  const firstDay  = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+
+  const cells = [];
+
+  // Padding from previous month
+  for (let i = firstDay - 1; i >= 0; i--) {
+    cells.push({ day: daysInPrev - i, cur: false, dateStr: null });
+  }
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = calYear+'-'+pad(calMonth+1)+'-'+pad(d);
+    cells.push({ day: d, cur: true, dateStr: ds });
+  }
+  // Padding for next month
+  const remainder = 7 - (cells.length % 7);
+  if (remainder < 7) {
+    for (let i = 1; i <= remainder; i++) {
+      cells.push({ day: i, cur: false, dateStr: null });
+    }
+  }
+
+  const html = cells.map(c => {
+    if (!c.cur) return '<div class="cal-cell other-month"><div class="cal-day-num">'+c.day+'</div></div>';
+
+    const ds         = c.dateStr;
+    const isToday    = ds === now;
+    const hasPurch   = !!purchaseMap[ds];
+    const hasExpiry  = !!expiryMap[ds];
+
+    let cls = 'cal-cell';
+    if (isToday)   cls += ' is-today';
+    if (hasPurch)  cls += ' has-purchase';
+    if (hasExpiry && !hasPurch) cls += ' has-expiry';
+
+    const onclick = (hasPurch || hasExpiry) ? ' onclick="calShowDetail(\''+ds+'\')"' : '';
+
+    // Recovery summary — shown at TOP of cell in amber, before day number
+    let recoveryHtml = '';
+    if (hasExpiry) {
+      const exps = expiryMap[ds];
+      let totF = 0, totC = 0;
+      exps.forEach(p => { totF += p.flower; totC += p.conc; });
+      const parts = [];
+      if (totF > 0) parts.push(totF.toFixed(2)+'g 🌿');
+      if (totC > 0) parts.push(totC.toFixed(3).replace(/\.?0+$/,'')+'g THC');
+      recoveryHtml = '<div class="cal-recovery">↑ '+parts.join(' · ')+'</div>';
+    }
+
+    // Dots — medical green, recreational purple, THC blue
+    let dots = '<div class="cal-dots">';
+    if (hasPurch) {
+      const ps = purchaseMap[ds];
+      const medPs = ps.filter(p=>!p.isRec);
+      const recPs = ps.filter(p=> p.isRec);
+      if (medPs.some(p=>p.flower>0)) dots += '<div class="cal-dot flower"></div>';
+      if (medPs.some(p=>p.conc>0))   dots += '<div class="cal-dot thc"></div>';
+      if (recPs.length)               dots += '<div class="cal-dot rec"></div>';
+    }
+    dots += '</div>';
+
+    // Pills (purchase descriptions) — rec ones styled purple
+    let pills = '<div class="cal-pills">';
+    if (hasPurch) {
+      const allPs = purchaseMap[ds];
+      allPs.slice(0,2).forEach(p => {
+        pills += '<div class="cal-pill'+(p.isRec?' rec':'')+'">'+p.desc+'</div>';
+      });
+      if (allPs.length > 2)
+        pills += '<div class="cal-pill">+' + (allPs.length-2) + ' more</div>';
+    }
+    pills += '</div>';
+
+    return '<div class="'+cls+'"'+onclick+'>'
+      + recoveryHtml
+      + '<div class="cal-day-num">'+c.day+'</div>'
+      + dots + pills
+      + '</div>';
+  }).join('');
+
+  document.getElementById('cal-cells').innerHTML = html;
+}
+
+function calShowDetail(ds) {
+  const allData    = getPurchaseData();
+  const purchases  = allData.filter(p=>p.date===ds);
+  const expiries   = allData.filter(p=>addDays(p.date,30)===ds);
+  const detail     = document.getElementById('cal-detail');
+  const titleEl    = document.getElementById('cal-detail-title');
+  const bodyEl     = document.getElementById('cal-detail-body');
+
+  titleEl.textContent = fmtDisplay(ds);
+  let html = '';
+
+  if (purchases.length) {
+    const medPs = purchases.filter(p=>!p.isRec);
+    const recPs = purchases.filter(p=> p.isRec);
+
+    if (medPs.length) {
+      html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--green);margin-bottom:6px;">🏥 Medical</div>';
+      medPs.forEach(p => {
+        const parts=[];
+        if(p.flower>0) parts.push(p.flower.toFixed(2)+'g flower');
+        if(p.conc>0)   parts.push(p.thcUnit==='mg' ? p.concRaw.toFixed(0)+'mg THC' : p.conc.toFixed(3).replace(/\.?0+$/,'')+'g THC');
+        if(p.price>0)  parts.push('$'+p.price.toFixed(2));
+        html += '<div class="cal-detail-row">'
+          + '<span class="cal-detail-desc">'+p.desc+'</span>'
+          + '<span class="cal-detail-amt">'+parts.join(' · ')+'</span>'
+          + '</div>';
+      });
+    }
+    if (recPs.length) {
+      html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--purple);margin:'+(medPs.length?'10px':'0')+'px 0 6px;">🛍 Recreational</div>';
+      recPs.forEach(p => {
+        const parts=[];
+        if(p.flower>0) parts.push(p.flower.toFixed(2)+'g flower');
+        if(p.conc>0)   parts.push(p.thcUnit==='mg' ? p.concRaw.toFixed(0)+'mg THC' : p.conc.toFixed(3).replace(/\.?0+$/,'')+'g THC');
+        if(p.price>0)  parts.push('$'+p.price.toFixed(2));
+        html += '<div class="cal-detail-row">'
+          + '<span class="cal-detail-desc" style="color:var(--purple)">'+p.desc+'</span>'
+          + '<span class="cal-detail-amt">'+parts.join(' · ')+'</span>'
+          + '</div>';
+      });
+    }
+  }
+
+  if (expiries.length) {
+    html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);margin:'+(purchases.length?'12px':'0')+'px 0 6px;">Allotment recovery (purchases expire)</div>';
+    expiries.forEach(p => {
+      const parts=[];
+      if(p.flower>0) parts.push(p.flower.toFixed(2)+'g flower');
+      if(p.conc>0)   parts.push(p.thcUnit==='mg' ? p.concRaw.toFixed(0)+'mg THC' : p.conc.toFixed(3).replace(/\.?0+$/,'')+'g THC');
+      html += '<div class="cal-detail-row">'
+        + '<span class="cal-detail-desc" style="color:var(--text-muted)">'+p.desc+' <span style="font-size:11px;opacity:0.6">(bought '+fmtShort(p.date)+')</span></span>'
+        + '<span class="cal-detail-amt">'+parts.join(' · ')+'</span>'
+        + '</div>';
+    });
+  }
+
+  bodyEl.innerHTML = html;
+  detail.classList.add('open');
+}
+
+/* ─────────────────────────────────────────
+   TABS
+───────────────────────────────────────── */
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',
+      (i===0&&name==='allotment')||(i===1&&name==='journal')||(i===2&&name==='archive'));
+  });
+  document.getElementById('tab-allotment').classList.toggle('active',name==='allotment');
+  document.getElementById('tab-journal').classList.toggle('active',name==='journal');
+  document.getElementById('tab-archive').classList.toggle('active',name==='archive');
+  if(name==='journal'){ populateLinked(); renderJournal(); }
+  if(name==='archive'){ renderArchive(); }
+}
+
+/* ─────────────────────────────────────────
+   EXPIRED ROW TOGGLE (purchase log)
+───────────────────────────────────────── */
+let showExpired = false;
+
+function updateExpiredToggle() {
+  const now    = todayStr();
+  const cutoff = addDays(now, -30);
+  const all    = getPurchaseData();
+  const expired = all.filter(p => p.date <= cutoff);
+
+  const toggleRow = document.getElementById('expired-toggle-row');
+  const toggleBtn = document.getElementById('expired-toggle-btn');
+  const label     = document.getElementById('expired-toggle-label');
+
+  if (!expired.length) {
+    toggleRow.style.display = 'none';
+    return;
+  }
+  toggleRow.style.display = 'block';
+
+  // Show/hide the actual entry-group rows for expired purchases
+  purchases.forEach(p => {
+    const row = document.getElementById('row-'+p.id);
+    if (!row) return;
+    const inputs = row.querySelectorAll('input');
+    if (!inputs[0]?.value) return;
+    const date = inputs[0].value;
+    const group = document.getElementById('group-'+p.id);
+    if (!group) return;
+    const isExpired = date <= cutoff;
+    if (isExpired) {
+      group.style.display = showExpired ? '' : 'none';
+    }
+  });
+
+  const medExpired = expired.filter(p=>!p.isRec);
+  const recExpired = expired.filter(p=> p.isRec);
+  const parts = [];
+  if (medExpired.length) parts.push(medExpired.length+' medical');
+  if (recExpired.length) parts.push(recExpired.length+' recreational');
+
+  if (showExpired) {
+    label.textContent = '▲ Hide ' + expired.length + ' expired purchase' + (expired.length!==1?'s':'') + ' (' + parts.join(', ') + ')';
+    toggleBtn.style.borderStyle = 'solid';
+  } else {
+    label.textContent = '▼ Show ' + expired.length + ' expired purchase' + (expired.length!==1?'s':'') + ' (' + parts.join(', ') + ') — outside 30-day window';
+    toggleBtn.style.borderStyle = 'dashed';
+  }
+}
+
+function toggleExpired() {
+  showExpired = !showExpired;
+  updateExpiredToggle();
+}
+
+/* ─────────────────────────────────────────
+   ARCHIVE TAB
+───────────────────────────────────────── */
+let archiveOpenMonths = {}; // tracks which month accordion sections are open
+
+function renderArchive() {
+  const now    = todayStr();
+  const cutoff = addDays(now, -30);
+  const all    = getPurchaseData();
+
+  // Archive = everything outside the 30-day rolling window
+  const archived = all.filter(p => p.date <= cutoff)
+                      .sort((a,b) => b.date.localeCompare(a.date)); // newest first
+
+  // Populate year filter
+  const yearSel = document.getElementById('archive-year-filter');
+  const curYear = yearSel.value;
+  const years   = [...new Set(archived.map(p => p.date.slice(0,4)))].sort().reverse();
+  yearSel.innerHTML = '<option value="">All years</option>';
+  years.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    yearSel.appendChild(opt);
+  });
+  yearSel.value = curYear;
+
+  // Apply filters
+  const yearFilter = yearSel.value;
+  const typeFilter = document.getElementById('archive-type-filter').value;
+  let filtered = archived;
+  if (yearFilter) filtered = filtered.filter(p => p.date.startsWith(yearFilter));
+  if (typeFilter === 'med') filtered = filtered.filter(p => !p.isRec);
+  if (typeFilter === 'rec') filtered = filtered.filter(p =>  p.isRec);
+
+  // Summary cards
+  const totFlower = filtered.reduce((s,p)=>s+p.flower,0);
+  const totTHC    = filtered.reduce((s,p)=>s+p.conc,0);
+  const totSpend  = filtered.reduce((s,p)=>s+p.price,0);
+  const medCount  = filtered.filter(p=>!p.isRec).length;
+  const recCount  = filtered.filter(p=> p.isRec).length;
+  document.getElementById('archive-summary-cards').innerHTML = `
+    <div class="sum-card"><div class="sum-label">Purchases</div><div class="sum-val">${filtered.length}</div><div class="sum-sub">${medCount} medical · ${recCount} rec</div></div>
+    <div class="sum-card"><div class="sum-label">Flower</div><div class="sum-val">${totFlower.toFixed(1)}g</div><div class="sum-sub">dried flower</div></div>
+    <div class="sum-card"><div class="sum-label">Spent</div><div class="sum-val">$${totSpend.toFixed(2)}</div><div class="sum-sub">with prices logged</div></div>
+  `;
+
+  if (!filtered.length) {
+    document.getElementById('archive-list').innerHTML =
+      '<p class="archive-empty">No archived purchases yet — purchases move here automatically once they\'re outside the 30-day rolling window.</p>';
+    return;
+  }
+
+  // Group by year-month
+  const months = {};
+  filtered.forEach(p => {
+    const key = p.date.slice(0,7); // "2026-04"
+    if (!months[key]) months[key] = [];
+    months[key].push(p);
+  });
+
+  const certFlower = parseFloat(document.getElementById('cert-flower').value)||180;
+  const certTHC    = parseFloat(document.getElementById('cert-thc').value)||60;
+
+  let html = '';
+  Object.keys(months).sort().reverse().forEach(key => {
+    const items = months[key];
+    const [y,m] = key.split('-');
+    const monthName = new Date(parseInt(y), parseInt(m)-1, 1)
+      .toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+    const mFlower = items.reduce((s,p)=>s+p.flower,0);
+    const mTHC    = items.reduce((s,p)=>s+p.conc,0);
+    const mSpend  = items.reduce((s,p)=>s+p.price,0);
+    const mPct    = ((mFlower/certFlower)+(mTHC/certTHC))*100;
+
+    const isOpen  = archiveOpenMonths[key] !== false; // default open
+    const chevron = isOpen ? 'open' : '';
+
+    const metaParts = [items.length+' purchase'+(items.length!==1?'s':'')];
+    if (mFlower>0) metaParts.push(mFlower.toFixed(1)+'g flower');
+    if (mTHC>0)    metaParts.push(mTHC.toFixed(3).replace(/\.?0+$/,'')+'g THC');
+    if (mSpend>0)  metaParts.push('$'+mSpend.toFixed(2));
+    metaParts.push(mPct.toFixed(1)+'% pool');
+
+    html += `<div class="archive-month-group">
+      <div class="archive-month-header" onclick="toggleArchiveMonth('${key}')">
+        <span class="archive-month-label">
+          <span class="archive-month-chevron ${chevron}">▶</span>
+          ${monthName}
+        </span>
+        <span class="archive-month-meta">${metaParts.join(' · ')}</span>
+      </div>
+      <div class="archive-month-rows" id="archmonth-${key}" style="display:${isOpen?'block':'none'}">`;
+
+    items.forEach(p => {
+      const tags = [];
+      if(p.flower>0) tags.push('<span class="tag flower">'+p.flower.toFixed(2)+'g flower</span>');
+      if(p.conc>0)   tags.push('<span class="tag conc">'+(p.thcUnit==='mg'?p.concRaw.toFixed(0)+'mg':p.conc.toFixed(3).replace(/\.?0+$/,'')+'g')+' THC</span>');
+      if(p.price>0)  tags.push('<span class="tag price">$'+p.price.toFixed(2)+'</span>');
+      if(p.isRec)    tags.push('<span class="tag rec">Rec</span>');
+
+      html += `<div class="archive-row">
+        <span class="archive-row-date">${fmtShort(p.date)}</span>
+        <span class="archive-row-desc" style="${p.isRec?'color:var(--purple)':''}">${p.desc}</span>
+        <span class="archive-row-tags">${tags.join('')}</span>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  document.getElementById('archive-list').innerHTML = html;
+}
+
+function toggleArchiveMonth(key) {
+  const el = document.getElementById('archmonth-'+key);
+  const chevron = el?.previousElementSibling?.querySelector('.archive-month-chevron');
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  archiveOpenMonths[key] = !isOpen;
+  if (chevron) chevron.classList.toggle('open', !isOpen);
+}
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+loadJournal();
+initStars();
+calInit();
+document.getElementById('snapshot-date').value=todayStr();
+document.getElementById('jf-date').value=todayStr();
+if(!load()){ addRow(); }
+recalc();
+</script>
+</body>
+</html>
