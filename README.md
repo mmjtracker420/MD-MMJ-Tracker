@@ -49,11 +49,19 @@ Maryland's medical cannabis program limits how much you can purchase in any roll
 1. Open your OneStop account at [onestop.md.gov](https://onestop.md.gov) and find your current remaining balances
 2. Enter your certified amounts (from your provider's certification) in Step 1
 3. Enter your current remaining balances from OneStop in Step 2, with today's date as the snapshot date
-4. Log any purchases made after that snapshot date in Step 3
 
-**Ongoing use**
+**Ongoing use -- the recommended workflow**
 
-After each dispensary visit, check OneStop for your updated remaining balances and update the snapshot. Then log your new purchases with dates, amounts, and prices.
+This tracker works best as a planning tool before you go to the dispensary, not just a log after the fact.
+
+1. Check OneStop and update your snapshot balances so the tracker reflects where you actually stand
+2. Look up the products you want on your dispensary's website -- most Maryland dispensaries list product weights and THC content online
+3. Enter those products into the purchase log using the dispensary's listed info. The tracker will immediately show you whether you have enough allotment left to buy everything and how much of your pool each item uses
+4. Go to the dispensary and make your purchase
+5. After you get home, update any purchase lines where the actual product info (especially the delta-9 THC mg on the label) differs from what the website listed. This keeps your records accurate for future planning.
+
+The pre-purchase planning step is the most valuable part. You can see exactly how much pool percentage each item consumes and adjust your cart before you're standing at the register.
+
 
 **Important note on THC values for processed products**
 
